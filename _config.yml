@@ -2,24 +2,24 @@
 # Site settings
 # -----------------------------------------------------------------------------
 
-title: Robustness Research # the website title (if blank, full name will be used instead)
+title: Robust # the website title (if blank, full name will be used instead)
 first_name: Xiaowei
 middle_name: 
 last_name: Song
 email: dawnwei.song@gmail.com
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
-  Research on robust machine learning with Big data on healthcare, MRI and cryoET/cryoEM
+  Research on robust machine learning methods with Big data on healthcare, MRI and cryoET/cryoEM
 footer_text: >
-  Powered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
-  Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
-  Photos from <a href="https://unsplash.com" target="_blank">Unsplash</a>.
-keywords: jekyll, jekyll-theme, academic-website, portfolio-website # add your own keywords or leave empty
+  Powered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> | <a href="https://github.com/alshedivat/al-folio">al-folio</a>.
+# Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+#  Photos from <a href="https://unsplash.com" target="_blank">Unsplash</a>.
+keywords: robust, big data, MRI, cryoET, cryoEM, healthcare # add your own keywords or leave empty
 lang: en # the language of your site (for example: en, fr, cn, ru, etc.)
 icon: ⚛️ # the emoji used as the favicon (alternatively, provide image name in /assets/img/)
 
 url: https://dawnsong.github.io # the base hostname & protocol for your site
 baseurl:  # the subpath of your site, e.g. /blog/. Leave blank for root
-last_updated: false # set to true if you want to display last updated in the footer
+last_updated: true #false # set to true if you want to display last updated in the footer
 impressum_path: # set to path to include impressum link in the footer, use the same path as permalink in a page, helps to conform with EU GDPR
 back_to_top: true # set to false to disable the back to top button
 
@@ -48,7 +48,7 @@ rss_icon: true
 # -----------------------------------------------------------------------------
 
 navbar_fixed: true
-footer_fixed: true
+footer_fixed: false
 search_enabled: true
 socials_in_search: true
 bib_search: true
@@ -74,13 +74,13 @@ og_image: # The site-wide (default for all links) Open Graph preview image
 acm_id: # your dl.acm.org/profile/id
 blogger_url: # your blogger URL
 bluesky_url: # your bluesky URL
-dblp_url: https://dblp.org/pid/15/2546-2.html # your DBLP profile url
+dblp_url: # https://dblp.org/pid/15/2546-2.html # your DBLP profile url
 discord_id: # your discord id (18-digit unique numerical identifier)
 facebook_id: # your facebook id
 flickr_id: # your flickr id
 github_username: dawnsong # your GitHub user name
 gitlab_username: # your GitLab user name
-ieee_id: 37086384715 # your ieeexplore.ieee.org/author/id
+ieee_id: # 37086384715 # your ieeexplore.ieee.org/author/id
 inspirehep_id: #1010907 # Inspire HEP author ID
 instagram_id: # your instagram id
 kaggle_id: # your kaggle id
@@ -90,7 +90,7 @@ lattes_id: # your ID on Lattes (Brazilian Lattes CV)
 linkedin_username: # your LinkedIn user name
 mastodon_username: # your mastodon instance+username in the format instance.tld/@username
 medium_username: # your Medium username
-orcid_id: 0000-0001-9694-6594 # your ORCID ID
+orcid_id: # 0000-0001-9694-6594 # your ORCID ID
 osf_id: # your OSF ID
 pinterest_id: # your pinterest id
 publons_id: # your ID on Publons
@@ -108,11 +108,11 @@ whatsapp_number: # your WhatsApp number (full phone number in international form
 wikidata_id: # your wikidata id
 wikipedia_id: # your wikipedia id (Case sensitive)
 work_url: # work page URL
-x_username: # your X handle
+x_username: dawnsongx # your X handle
 youtube_id: # your youtube channel id (youtube.com/@<youtube_id>)
 zotero_username: # your zotero username
 
-#contact_note: >  
+contact_note: >  
 #  You can even add a little note about which of these is the best way to reach you.
 
 # -----------------------------------------------------------------------------
@@ -272,6 +272,7 @@ plugins:
   - jekyll-toc
   - jekyll-twitter-plugin
   - jemoji
+  - jekyll-diagrams
 
 # Sitemap settings
 defaults:
@@ -286,7 +287,6 @@ sass:
 # -----------------------------------------------------------------------------
 # Jekyll Minifier
 # -----------------------------------------------------------------------------
-
 jekyll-minifier:
   exclude: ["robots.txt", "assets/js/search/*.js", "assets/libs/**/*"]
   uglifier_args:
@@ -295,7 +295,6 @@ jekyll-minifier:
 # -----------------------------------------------------------------------------
 # Jekyll Archives
 # -----------------------------------------------------------------------------
-
 jekyll-archives:
   enabled: [year, tags, categories] # enables year, tag and category archives (remove if you need to disable one of them).
   layouts:
@@ -313,7 +312,6 @@ display_categories: ["external-services"] # these categories will be displayed o
 # -----------------------------------------------------------------------------
 # Jekyll Scholar
 # -----------------------------------------------------------------------------
-
 scholar:
   last_name: [Song] #[Einstein]
   first_name: [Xiaowei] #[Albert, A.]
@@ -384,7 +382,6 @@ enable_publication_thumbnails: true
 # -----------------------------------------------------------------------------
 # Jekyll Link Attributes
 # -----------------------------------------------------------------------------
-
 # These are the defaults
 external_links:
   enabled: true
@@ -395,7 +392,6 @@ external_links:
 # -----------------------------------------------------------------------------
 # Responsive WebP Images
 # -----------------------------------------------------------------------------
-
 # MAKE SURE imagemagick is installed and on your PATH before enabling imagemagick. In a terminal, run:
 #   convert -version
 imagemagick:
@@ -424,10 +420,23 @@ imagemagick:
 lazy_loading_images: true # enables lazy loading of images (recommended)
 
 # -----------------------------------------------------------------------------
+# Jekyll Diagrams
+# -----------------------------------------------------------------------------
+# configuration, see https://github.com/zhustec/jekyll-diagrams
+jekyll-diagrams:
+  graphviz:
+    # configurations for graphviz
+  blockdiag:
+    # configurations for blockdiag
+  syntrax:
+    # configurations for syntrax
+  # and so on
+
+# -----------------------------------------------------------------------------
 # Optional Features
 # -----------------------------------------------------------------------------
 
-enable_google_analytics: false # enables google analytics
+enable_google_analytics: true # enables google analytics
 enable_cronitor_analytics: false # enables cronitor RUM analytics
 enable_pirsch_analytics: false # enables Pirsch analytics (https://pirsch.io/)
 enable_openpanel_analytics: false # enables Openpanel analytics (https://openpanel.dev/)
@@ -441,12 +450,11 @@ enable_navbar_social: false # enables displaying social links in the navbar on t
 enable_project_categories: true # enables categorization of projects into multiple categories
 enable_medium_zoom: true # enables image zoom feature (as on medium.com)
 enable_progressbar: true # enables a horizontal progress bar linked to the vertical scroll position
-enable_video_embedding: false # enables video embedding for bibtex entries. If false, the button opens the video link in a new window.
+enable_video_embedding: true #false # enables video embedding for bibtex entries. If false, the button opens the video link in a new window.
 
 # -----------------------------------------------------------------------------
 # Library versions
 # -----------------------------------------------------------------------------
-
 # Add the url, version and integrity hash of the libraries you use in your site.
 # The integrity hash is used to ensure that the library is not tampered with.
 # Integrity hashes not provided by the libraries were generated using https://www.srihash.org/
@@ -633,10 +641,9 @@ third_party_libraries:
 # -----------------------------------------------------------------------------
 # Get external JSON data
 # -----------------------------------------------------------------------------
-
 jekyll_get_json:
   - data: resume
-    json: assets/json/resume.json # it can also be an url
+    json: assets/json/resume__Xiaowei_Song.json # it can also be an url
 jsonresume:
   - basics
   - work
