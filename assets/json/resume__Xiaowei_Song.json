@@ -14,15 +14,11 @@
       "countryCode": "US",
       "region": "Maryland"
     },
-    "profiles": [
-      {"network": "Twitter",
-        "username": "dawnsongx",
-        "url": "https://twitter.com/dawnsongx"
-      }
-    ]
+    "profiles": [{ "network": "Twitter", "username": "dawnsongx", "url": "https://twitter.com/dawnsongx" }]
   },
   "work": [
-    {"name": "GDIT",
+    {
+      "name": "GDIT",
       "position": "Data analyst, Senior",
       "url": "",
       "startDate": "2022-06-01",
@@ -32,7 +28,8 @@
     }
   ],
   "volunteer": [
-    { "organization": "NIDA, NIH",
+    {
+      "organization": "NIDA, NIH",
       "location": "Baltimore, MD",
       "position": "Neuroimaging researcher",
       "url": "",
@@ -43,7 +40,8 @@
     }
   ],
   "education": [
-    { "institution": "Beijing normal University, China",
+    {
+      "institution": "Beijing normal University, China",
       "location": "Beijing city, China",
       "url": "https://www.bnu.edu.cn/",
       "area": "Computer science",
@@ -51,9 +49,10 @@
       "startDate": "2006-09-01",
       "endDate": "2009-07-01",
       "score": "A",
-      "courses": ["Pattern recognition", "ANOVA", "Chaos, non-linear analysis", "Human Brain anatomy and functions" ]
+      "courses": ["Pattern recognition", "ANOVA", "Chaos, non-linear analysis", "Human Brain anatomy and functions"]
     },
-    { "institution": "Zhengzhou University, China",
+    {
+      "institution": "Zhengzhou University, China",
       "location": "Zhengzhou city, Henan province, China",
       "url": "https://www.zzu.edu.cn/",
       "area": "Automation",
@@ -61,10 +60,25 @@
       "startDate": "1999-09-01",
       "endDate": "2003-07-01",
       "score": "A",
-      "courses": ["Linear algebra", "Calculus", "Analysis", "Complex Function Analysis", "Statistics", "Mechanical design", "Electronics", "Classical control theory", "Mordern control theory", "Electrical Motor theory & design", "Electrical Motor powered machinary design", "Electrical magnetic analysis", "DCS: distributed control systems", "PLC: programable logical controllers"]
+      "courses": [
+        "Linear algebra",
+        "Calculus",
+        "Analysis",
+        "Complex Function Analysis",
+        "Statistics",
+        "Mechanical design",
+        "Electronics",
+        "Classical control theory",
+        "Mordern control theory",
+        "Electrical Motor theory & design",
+        "Electrical Motor powered machinary design",
+        "Electrical magnetic analysis",
+        "DCS: distributed control systems",
+        "PLC: programable logical controllers"
+      ]
     }
   ],
-  
+
   "certificates": [
     {
       "name": "Machine Learning",
