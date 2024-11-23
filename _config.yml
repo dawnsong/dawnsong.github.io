@@ -4,7 +4,7 @@
 
 title: Robust # the website title (if blank, full name will be used instead)
 first_name: Xiaowei
-middle_name: 
+middle_name:
 last_name: Song
 email: dawnwei.song@gmail.com
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
@@ -18,7 +18,7 @@ lang: en # the language of your site (for example: en, fr, cn, ru, etc.)
 icon: ⚛️ # the emoji used as the favicon (alternatively, provide image name in /assets/img/)
 
 url: https://dawnsong.github.io # the base hostname & protocol for your site
-baseurl:  # the subpath of your site, e.g. /blog/. Leave blank for root
+baseurl: # the subpath of your site, e.g. /blog/. Leave blank for root
 last_updated: true #false # set to true if you want to display last updated in the footer
 impressum_path: # set to path to include impressum link in the footer, use the same path as permalink in a page, helps to conform with EU GDPR
 back_to_top: true # set to false to disable the back to top button
@@ -112,9 +112,8 @@ x_username: dawnsongx # your X handle
 youtube_id: # your youtube channel id (youtube.com/@<youtube_id>)
 zotero_username: # your zotero username
 
-contact_note: >  
+contact_note: >
 #  You can even add a little note about which of these is the best way to reach you.
-
 # -----------------------------------------------------------------------------
 # Analytics and search engine verification
 # -----------------------------------------------------------------------------
@@ -643,7 +642,7 @@ third_party_libraries:
 # -----------------------------------------------------------------------------
 jekyll_get_json:
   - data: resume
-    json: assets/json/resume__Xiaowei_Song.json # it can also be an url
+    json: assets/json/resume.json # it can also be an url
 jsonresume:
   - basics
   - work
