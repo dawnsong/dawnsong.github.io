@@ -32,7 +32,7 @@
     },
   ],
   "volunteer": [
-    {,"organization": "NIDA, NIH",
+    { "organization": "NIDA, NIH",
       "location": "Baltimore, MD",
       "position": "Neuroimaging researcher",
       "url": "",
@@ -53,7 +53,7 @@
       "score": "A",
       "courses": ["Pattern recognition", "ANOVA", "Chaos, non-linear analysis", "Human Brain anatomy and functions" ]
     },
-    {,"institution": "Zhengzhou University, China",
+    { "institution": "Zhengzhou University, China",
       "location": "Zhengzhou city, Henan province, China",
       "url": "https://www.zzu.edu.cn/",
       "area": "Automation",
