@@ -18,7 +18,7 @@
       {"network": "Twitter",
         "username": "dawnsongx",
         "url": "https://twitter.com/dawnsongx"
-      },
+      }
     ]
   },
   "work": [
@@ -29,7 +29,7 @@
       "endDate": "2032-06-01",
       "summary": "Analyze and model health-care data in a data-driven way, especially on HCPCS, ICD-10-CM codes..., in PIMAS (Program Integrity Modeling & Analytic Services).",
       "highlights": ["Robustness"]
-    },
+    }
   ],
   "volunteer": [
     { "organization": "NIDA, NIH",
@@ -40,7 +40,7 @@
       "endDate": "2025-03-01",
       "summary": "Robust methods application on neuroimaging big human data, as well as small monkey data",
       "highlights": ["", ""]
-    },
+    }
   ],
   "education": [
     { "institution": "Beijing normal University, China",
@@ -72,7 +72,7 @@
       "issuer": "Stanford University",
       "url": "https://example.com",
       "icon": "fa-solid fa-location-dot"
-    },    
+    }
   ],
   "publications": [
     {
