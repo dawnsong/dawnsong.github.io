@@ -419,19 +419,6 @@ imagemagick:
 lazy_loading_images: true # enables lazy loading of images (recommended)
 
 # -----------------------------------------------------------------------------
-# Jekyll Diagrams
-# -----------------------------------------------------------------------------
-# configuration, see https://github.com/zhustec/jekyll-diagrams
-jekyll-diagrams:
-  graphviz:
-    # configurations for graphviz
-  blockdiag:
-    # configurations for blockdiag
-  syntrax:
-    # configurations for syntrax
-  # and so on
-
-# -----------------------------------------------------------------------------
 # Optional Features
 # -----------------------------------------------------------------------------
 
