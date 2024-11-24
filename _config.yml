@@ -164,7 +164,7 @@ giscus:
   loading: lazy
 
 # Disqus comments (DEPRECATED)
-disqus_shortname: dawnsong #al-folio # put your disqus shortname
+disqus_shortname: dawnsong-github-io #al-folio # put your disqus shortname
 # https://help.disqus.com/en/articles/1717111-what-s-a-shortname
 
 # External sources.
