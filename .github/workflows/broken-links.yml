@@ -19,7 +19,7 @@ on:
       - "!.github/workflows/lighthouse-badger.yml"
       - "!.github/workflows/prettier.yml"
       - "!lighthouse_results/**"
-      - "!assets/node_modules/balloon-css/readme.md"
+      - "!**/node_modules/**"
   pull_request:
     branches:
       - master
