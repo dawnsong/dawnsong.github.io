@@ -1,0 +1,3 @@
+20240917
+Except images folder, all other files are generated with: 
+npm install aplayer --save

@@ -1,0 +1,1 @@
+function attrGDIT(){var t=document.getElementsByClassName("leaflet-control-attribution")[0],e=document.createElement("a");e.text=" | Xiaowei",e.href="https://dawnsong.github.io/",t.appendChild(e)}window.addEventListener("load",attrGDIT);
