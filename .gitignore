@@ -12,3 +12,8 @@ vendor
 .idea
 *.lock*
 *.bak
+*.mp3
+*.m4a
+*.log
+*.LOG
+*.404

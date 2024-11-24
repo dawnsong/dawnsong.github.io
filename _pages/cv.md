@@ -5,7 +5,7 @@ title: cv
 nav: true
 nav_order: 5
 cv_pdf: example_pdf.pdf
-description: Real-problems sovling experience, including scientific papers and softwares.
+description: Real-problems sovling, publishing scientific papers and softwares.
 toc:
   sidebar: left 
 ---
