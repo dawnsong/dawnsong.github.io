@@ -24,7 +24,11 @@
       "startDate": "2022-06-01",
       "endDate": "2032-06-01",
       "summary": "Analyze and model health-care data in a data-driven way, especially on HCPCS, ICD-10-CM codes..., in PIMAS (Program Integrity Modeling & Analytic Services).",
-      "highlights": ["Robustness"]
+      "highlights": [
+        "Opioid provider/pharmacy/beneficiary tri-nodal graph analysis",
+        "Home health asistence analysis",
+        "DME referring provider analysis"
+      ]
     }
   ],
   "volunteer": [
@@ -42,18 +46,24 @@
   "education": [
     {
       "institution": "Beijing normal University, China",
-      "location": "Beijing city, China",
+      "location": "Beijing, China",
       "url": "https://www.bnu.edu.cn/",
       "area": "Computer science",
       "studyType": "Engineer master",
       "startDate": "2006-09-01",
       "endDate": "2009-07-01",
       "score": "A",
-      "courses": ["Pattern recognition", "ANOVA", "Chaos, non-linear analysis", "Human Brain anatomy and functions"]
+      "courses": [
+        "Pattern recognition",
+        "ANOVA in psychology",
+        "AFNI/SPM/FSL/REST",
+        "Chaos with non-linear analysis",
+        "Human Brain anatomy and functions"
+      ]
     },
     {
       "institution": "Zhengzhou University, China",
-      "location": "Zhengzhou city, Henan province, China",
+      "location": "Zhengzhou, China",
       "url": "https://www.zzu.edu.cn/",
       "area": "Automation",
       "studyType": "Engineer bachelor",
