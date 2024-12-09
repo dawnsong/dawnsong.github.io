@@ -34,6 +34,13 @@ function moveDivToUl() {
   //to debug
 }
 // moveDivToUl();
+function getParam(name, defaultValue) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const value = urlParams.get(name);
+
+  return value !== null ? value : defaultValue;
+}
+
 var ap = new APlayer({
   element: document.getElementById('xplayer'),
   narrow: false,
@@ -49,7 +56,7 @@ var ap = new APlayer({
   mutex: true,
   theme:  '#ad7a86', // '#b7daff',  //'#0a0a0f',//
   listFolded: true,
-  audio: getRandomSubarray(songs, 10)
+  audio: getRandomSubarray(songs, getParam('x', 10))
 });
 //save decoded hifini URLs (i.e., qq music url) to local cookies
 // ap.on('play', function () {
