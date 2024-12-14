@@ -5241,6 +5241,146 @@ name: '想你的365天' ,
 artist: '李玟' ,
 url: 'https://music.163.com/404' ,
 cover: 'https://p1.music.126.net/T3A0it3ClzvwSjWrvE9sTA==/842225906916261.jpg?param=130y130'  ,
+},{
+name: '越过山丘 (Live)' ,
+artist: '李雅' ,
+url: 'https://m.hifini.com/music/%E6%9D%8E%E9%9B%85%20-%20%E8%B6%8A%E8%BF%87%E5%B1%B1%E4%B8%98%20(Live).m4a' ,
+cover: 'https://y.qq.com/music/photo_new/T002R300x300M000000kRMad0wRO7V_1.jpg?max_age=2592000'  ,
+},{
+name: '中意你 (DJ阿卓版)' ,
+artist: '咖菲' ,
+url: 'http://lv-sycdn.kuwo.cn/d60c3993401908289b4883cdf7a37dd4/675cea6f/resource/30106/trackmedia/M5000009qGlK283y3V.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000004Pu4zQ0LM3hV.jpg'  ,
+},{
+name: '风雨飘洒 (DJR7版)' ,
+artist: '咖菲' ,
+url: 'http://lv-sycdn.kuwo.cn/dcffef94a2613e01e0881358ebbdef95/675cdf50/resource/30106/trackmedia/M500001FXozr2ns3r3.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000002TBbcv0yeklT.jpg'  ,
+},{
+name: '我想要的(DJ阿卓版)' ,
+artist: '咖菲' ,
+url: 'http://ws6.stream.qqmusic.qq.com/C400003NJlT320BiF2.m4a?guid=675c40f4595df&vkey=C1E68EF952B6A9CFD5D1FD2A8C684EB1C0E12CC113CA4FEC99EA5A6EB86A6D03A95686320295511B4D34E0D3C7556FB60BBE12D66612EBA7__v215192ff9&uin=1320914825&fromtag=120032&src=C400000JNU7p2g7Ylk.m4a' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000002DKaJt3b2NNA.jpg'  ,
+},{
+name: '大醉人间' ,
+artist: '咖菲' ,
+url: 'http://lw-sycdn.kuwo.cn/14c036fcc803b84b0f2e91f0d0e69906/675ceac4/resource/30106/trackmedia/M500002YREA53Thd9a.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000003AsZgA1BLnkY.jpg'  ,
+},{
+name: '风雨飘洒' ,
+artist: '咖菲' ,
+url: 'http://lg-sycdn.kuwo.cn/255d19ea6ac47a53e523ce12c4769d3c/675ceae3/resource/n1/55/13/2379719462.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000002TBbcv0yeklT.jpg'  ,
+},{
+name: '谁的生活不是缝缝补补' ,
+artist: '咖菲' ,
+url: 'http://lx-sycdn.kuwo.cn/fb6c47bc0fa8fd9e6b21d897e31d62bc/675ceb06/resource/n1/36/27/4243660329.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000001Ba6ko1xDf1y.jpg'  ,
+},{
+name: '初来人间不知苦' ,
+artist: '张崇赞' ,
+url: 'http://lv-sycdn.kuwo.cn/e8165289493604b9167091d9d9b16728/675ceb24/resource/30106/trackmedia/M500003OnfZj0xN27S.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000000xZu1d1OAVog.jpg'  ,
+},{
+name: '初来人间不知苦' ,
+artist: '怪阿姨' ,
+url: 'http://lx-sycdn.kuwo.cn/734ec8056831c7ebd63f0c3e82af6ed1/675ceb40/resource/n1/12/90/514774732.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000003jC92Q343oa1.jpg'  ,
+},{
+name: '闻妖' ,
+artist: '国风堂' ,
+url: 'http://m10.music.126.net/20241214104514/490641494b62af041781aaddb9648e96/ymusic/0e0e/015d/515b/9d71123fee67d5d9f775f11d8c4e990d.mp3' ,
+cover: 'https://p2.music.126.net/h8295jY3kJNXteMZIzO-fw==/109951164194726647.jpg?param=130y130'  ,
+},{
+name: '长安四韵' ,
+artist: '国风堂' ,
+url: 'http://m10.music.126.net/20241214104542/d4dce47c3714a31b51c86fc3b53e4e24/ymusic/555e/005e/075b/b4458bfc097487a9a9840146ee58aa82.mp3' ,
+cover: 'https://p2.music.126.net/OqIdlBjR-RoKXWfl3Ky1WQ==/109951164094353936.jpg?param=130y130'  ,
+},{
+name: '虚传' ,
+artist: '国风堂' ,
+url: 'http://m10.music.126.net/20241214104628/28a70e534d1f07e097d9aa34d82bbcb1/ymusic/0558/5358/5108/22bd49b8a0d265f85b8efbbb734c7b9c.mp3' ,
+cover: 'https://p2.music.126.net/hvPKjCoXXHfVRTGBu-xTQQ==/109951164380017122.jpg?param=130y130'  ,
+},{
+name: '锦中客' ,
+artist: '国风堂' ,
+url: 'http://m10.music.126.net/20241214104656/9c4a08abc5737d3ef1045c68e168986d/ymusic/5509/050e/0f08/bc1f70ca632df824fc138b05731763bf.mp3' ,
+cover: 'https://p2.music.126.net/KwgzW3or6dfSITjVGledgg==/109951164003552292.jpg?param=130y130'  ,
+},{
+name: '江山行歌' ,
+artist: '国风堂' ,
+url: 'http://m10.music.126.net/20241214104726/31c97f8319b8f3c1b57b57078578d3cd/ymusic/540b/540f/5659/ca431faf51cecfaa3f9aa314e8a64f57.mp3' ,
+cover: 'https://p2.music.126.net/Xff9NTGS0SE8B07tliEhHg==/109951163991185354.jpg?param=130y130'  ,
+},{
+name: '云山入梦舟' ,
+artist: '国风堂' ,
+url: 'http://m10.music.126.net/20241214104753/68897f1e76a8c14406599daf68049d20/ymusic/obj/w5zDlMODwrDDiGjCn8Ky/14050300311/8962/24b7/66de/e6b1624bee7afbf687d258f9f48f5d48.mp3' ,
+cover: 'https://p1.music.126.net/g1IwZ8hynyAf5OdcKQo1Hg==/109951164036982231.jpg?param=130y130'  ,
+},{
+name: '金陵谣' ,
+artist: '国风堂' ,
+url: 'http://m10.music.126.net/20241214104826/1366bbf1c1b8025679bd24588fbdca5a/ymusic/020b/040b/025c/5ae8dcbbb63a182685bd5620bd56d477.mp3' ,
+cover: 'https://p1.music.126.net/XiQZ_pA1ZSKpf9tOF5LbOg==/109951164078230690.jpg?param=130y130'  ,
+},{
+name: '凉夜横塘' ,
+artist: '等什么君' ,
+url: 'http://cl-sycdn.kuwo.cn/065828af5968091c028ca034558ac87b/675ce131/resource/n3/15/13/3404293564.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000002Gwbg13brBce.jpg'  ,
+},{
+name: '云兮客' ,
+artist: '国风堂' ,
+url: 'http://m10.music.126.net/20241214104922/0a5bbcc45b73644f258e9c7d2fad75e0/ymusic/5253/525a/5308/e9bb18894de0d921eb55db93ee9a4065.mp3' ,
+cover: 'https://p1.music.126.net/_JfApH_UG_jNok-0xe_pKw==/109951164447797301.jpg?param=130y130'  ,
+},{
+name: '谁念西风独自凉' ,
+artist: '等什么君' ,
+url: 'http://su-sycdn.kuwo.cn/06a5cda3eadcc4e0084ccf9115fb3759/675cec6d/resource/n2/34/25/3787776542.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000002mT36X3X8hDn.jpg'  ,
+},{
+name: '下山' ,
+artist: '等什么君' ,
+url: 'http://eb-sycdn.kuwo.cn/0c57869caab5891a3dcce1fc5a91d84b/675cec97/resource/n1/81/38/3745010463.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000002RFzkJ46pRll.jpg'  ,
+},{
+name: '关山酒' ,
+artist: '等什么君' ,
+url: 'http://lv-sycdn.kuwo.cn/ce8860c33d4dbaadd1830acc3b9aa04f/675ce7ba/resource/30106/trackmedia/M5000027S5l40JSdZZ.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000000Q5EDB1gg5I2.jpg'  ,
+},{
+name: '明月天涯 (Cover：五音JW)' ,
+artist: '等什么君' ,
+url: 'http://m10.music.126.net/20241214105132/6875f46dd9c6b9f9542db8430ed80d28/ymusic/obj/w5zDlMODwrDDiGjCn8Ky/14052338672/66b7/9131/b533/8540049e20bd18e3d65114885fc1a0b6.mp3' ,
+cover: 'https://p2.music.126.net/MZKuihozRM9B0dp11dVulA==/109951163847817397.jpg?param=130y130'  ,
+},{
+name: '赤伶' ,
+artist: '等什么君' ,
+url: 'http://lw-sycdn.kuwo.cn/9b0106675daac8c15ad7b5bc03eac4d8/675cecf4/resource/30106/trackmedia/M500000gHDSy10Ttnq.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000000LiCt43zobpA.jpg'  ,
+},{
+name: '春庭雪' ,
+artist: '等什么君' ,
+url: 'http://lw-sycdn.kuwo.cn/ab3fe68014522cabe306d9b3c4b50177/675cdac9/resource/30106/trackmedia/M500000qrMor4TlgIQ.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000000vtKmF3OEIbF.jpg'  ,
+},{
+name: '年少有为' ,
+artist: '李荣浩' ,
+url: 'http://m804.music.126.net/20241214105253/fe91ae2e3477a85b0bab8e289c373f58/jdymusic/obj/wo3DlMOGwrbDjj7DisKw/32283600345/f29b/d599/f294/a7361dca69f85d80e3c027f2ec0550cd.mp3?authSecret=00000193c2fe6a0211130a3b1dc4183b' ,
+cover: 'https://p2.music.126.net/tt8xwK-ASC2iqXNUXYKoDQ==/109951163606377163.jpg?param=130y130'  ,
+},{
+name: '荒冢' ,
+artist: '零点乐队' ,
+url: 'http://cg-sycdn.kuwo.cn/5538d81b053caabef6b6fbb985905aba/675ced4f/resource/n3/0/61/1311656581.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000001KluFT1EUiWI.jpg'  ,
+},{
+name: '燃烧' ,
+artist: '零点乐队' ,
+url: 'http://ws6.stream.qqmusic.qq.com/C400002pctwC4QCmgs.m4a?guid=71424425&vkey=C152BA0831CEC52DDC56CF0A1E61522521868D4F7439021321D45289DD30993AD65ED26BB3E44639D6BD6A67E1710E4CBEAAE64761872089__v2b94c142&uin=&fromtag=103032&src=C400002I3HZV4g8FF7.m4a' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000002y9TfL4CrvSq.jpg'  ,
+},{
+name: '记事本' ,
+artist: '陈慧琳' ,
+url: 'http://lv-sycdn.kuwo.cn/57a84e6a2169bc3a91db38972782c538/675ced83/resource/30106/trackmedia/M500000Slv6n07u8xl.mp3?bitrate=128&from=vip' ,
+cover: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000002aXA3O3Toaie.jpg'  ,
 },];
 function getRandomSubarray(arr, size) {
   var shuffled = arr.slice(0), i = arr.length, min = i - size, temp, index;
