@@ -243,6 +243,9 @@ def getDownLoadedFileName(waitTime=120):
       if time.time() > endTime:
           break  
 
+def guessSongFilename():
+  pass
+
 def getFavSongs(url, favdb={}):
   sbd=sb.driver
   sbd.uc_open_with_tab(url)
@@ -314,7 +317,8 @@ def getFavSongs(url, favdb={}):
       if 1==1:
         favPage[f'url:{author}__{title}']=qUrl
         #save mp3 to local
-        ufn=qUrl.split('/')[-1]
+        ufn=qUrl.split('?')[0] #in case there is / included in the params after ?
+        ufn=ufn.split('/')[-1]
         ufn=ufn.split('?')[0]
         try:
           ext=ufn.split('.')[-1] #the last part
