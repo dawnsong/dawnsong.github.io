@@ -46,13 +46,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options as EdgeOptions
-
+ 
 # import chatPDF #20230818, use chatPDF.com API to extract receipts info
 
 import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(lineno)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
-fhandler = logging.FileHandler(filename=__file__+'__logging.log', mode='a')
+fhandler = logging.FileHandler(filename=f'{Path(__file__).stem}__logging.log', mode='w')
 logger.addHandler(fhandler)
 logger.info('-'*16 + datetime.now().strftime("%Y%m%d.%H%M%S") + '-'*16)
 
