@@ -243,6 +243,21 @@ def getDownLoadedFileName(waitTime=120):
       if time.time() > endTime:
           break  
 
+def guessSongFilename(qUrl, author='', title='', dir4songs='songs/'):
+  #save mp3 to local
+  ufn=qUrl.split('?')[0] #in case there is / included in the params after ?
+  ufn=ufn.split('/')[-1]
+  ufn=ufn.split('?')[0]
+  try:
+    ext=ufn.split('.')[-1] #the last part
+  except Exception as e:
+    ext=''
+    logger.error(f"qURL={qUrl} |no extension Error|: {e}")
+  fn=f"songs/{author}__{title}.{ext}"    
+  for p in (':', '(', ')'): #remove all illegal filenames in Windows
+    fn=fn.replace(p, '')
+  return fn
+
 def getFavSongs(url, favdb={}):
   sbd=sb.driver
   sbd.uc_open_with_tab(url)
@@ -306,33 +321,25 @@ def getFavSongs(url, favdb={}):
     qUrl=None
     if r.status_code in {200, 206, 401}: #401 means not authorized, but I still want to try if body is possible !
       logger.info(f"header: {r} , mUrl: {mUrl}")
-      qUrl=r.url
+      qUrl=r.url      
       # if '404' in qUrl:
       #   #deal with 404 from music.163.com/404
       #   logging.warning(f'404 found qUrl: {qUrl} , i.e., the 200/206 returned header URL for the song')
       # else:
-      if 1==1:
-        favPage[f'url:{author}__{title}']=qUrl
-        #save mp3 to local
-        ufn=qUrl.split('/')[-1]
-        ufn=ufn.split('?')[0]
-        try:
-          ext=ufn.split('.')[-1] #the last part
-        except Exception as e:
-          ext=''
-          logger.error(f"qURL={qUrl} |no extension Error|: {e}")
-        fn=f"songs/{author}__{title}.{ext}"
-        favPage[f'file:{author}__{title}']=Path(fn).name #only basename
-        if not Path(fn).exists():
-          logger.info(f"Downloading song {fn} from {qUrl}")
-          with requestsGet(qUrl, href) as r: #, headers=hifiniHeaders) as r:
-            with open(fn, 'wb') as f:
-                shutil.copyfileobj(r.raw, f)
-        else:
-          logger.info(f"SONG file {fn} already exists, ignore downloading")
-        if Path(fn).exists():
-          favdb[fk]=Path(fn).name #update link from fav list to real downloaded music filename        
-          logger.info(f"SONG {fn} exists| {favdb[fk]} is MARKED downloaded")
+      # if 1==1:
+      favPage[f'url:{author}__{title}']=qUrl
+      fn=guessSongFilename(qUrl, author=author, title=title, dir4songs='songs/')      
+      favPage[f'file:{author}__{title}']=Path(fn).name #only basename
+      if not Path(fn).exists():
+        logger.info(f"Downloading song {fn} from {qUrl}")
+        with requestsGet(qUrl, href) as r: #, headers=hifiniHeaders) as r:
+          with open(fn, 'wb') as f:
+              shutil.copyfileobj(r.raw, f)
+      else:
+        logger.info(f"SONG file {fn} already exists, ignore downloading")
+      if Path(fn).exists():
+        favdb[fk]=Path(fn).name #update link from fav list to real downloaded music filename        
+        logger.info(f"SONG {fn} exists| {favdb[fk]} is MARKED downloaded")
     else:
       logger.warning(r)
     # logging.info(qUrl)
