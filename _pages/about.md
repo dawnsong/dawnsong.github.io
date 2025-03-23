@@ -6,7 +6,7 @@ subtitle: <a href='#'>Affiliations:</a> GDIT, NIDA/NIH
 
 profile:
   align: right
-  image: Xiaowei-nida-rhesus-anat-cartoon-70ppi.png
+  image: <img style="width:30%">Xiaowei-nida-rhesus-anat-cartoon-70ppi.png</img>
   image_circular: true # crops the image to make it circular
   more_info: >
     <p>Robust,NeuroImaging,cryoET,health care,big data</p>
