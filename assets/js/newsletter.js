@@ -12,7 +12,8 @@ function submitHandler(event) {
 
   const rateLimit = () => {
     errorContainer.style.display = "flex";
-    errorMessage.innerText = "Too many signups, please try again in a little while";
+    errorMessage.innerText =
+      "Too many signups, please try again in a little while";
     submitButton.style.display = "none";
     formInput.style.display = "none";
     backButton.style.display = "block";
@@ -93,13 +94,21 @@ function resetFormHandler(event) {
   submitButton.style.display = "flex";
 }
 
-var formContainers = document.getElementsByClassName("newsletter-form-container");
+var formContainers = document.getElementsByClassName(
+  "newsletter-form-container",
+);
 
 for (var i = 0; i < formContainers.length; i++) {
   var formContainer = formContainers[i];
-  var handlersAdded = formContainer.classList.contains("newsletter-handlers-added");
+  var handlersAdded = formContainer.classList.contains(
+    "newsletter-handlers-added",
+  );
   if (handlersAdded) continue;
-  formContainer.querySelector(".newsletter-form").addEventListener("submit", submitHandler);
-  formContainer.querySelector(".newsletter-back-button").addEventListener("click", resetFormHandler);
+  formContainer
+    .querySelector(".newsletter-form")
+    .addEventListener("submit", submitHandler);
+  formContainer
+    .querySelector(".newsletter-back-button")
+    .addEventListener("click", resetFormHandler);
   formContainer.classList.add("newsletter-handlers-added");
 }

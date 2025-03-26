@@ -9,6 +9,9 @@ $(document).ready(function () {
     _text = $this.text();
     $this.text("").append($canvas);
     _ctx = $canvas.get(0).getContext("2d");
-    _ctx && _text && new Chart(_ctx, JSON.parse(_text)) && $this.attr("data-processed", true);
+    _ctx &&
+      _text &&
+      new Chart(_ctx, JSON.parse(_text)) &&
+      $this.attr("data-processed", true);
   });
 });

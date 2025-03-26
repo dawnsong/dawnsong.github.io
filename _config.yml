@@ -241,6 +241,7 @@ exclude:
   - README.md
   - readme_preview/
   - vendor
+  - hifini/
 keep_files:
   - CNAME
   - .nojekyll

@@ -14,7 +14,13 @@
       "countryCode": "US",
       "region": "Maryland"
     },
-    "profiles": [{ "network": "Twitter", "username": "dawnsongx", "url": "https://twitter.com/dawnsongx" }]
+    "profiles": [
+      {
+        "network": "Twitter",
+        "username": "dawnsongx",
+        "url": "https://twitter.com/dawnsongx"
+      }
+    ]
   },
   "work": [
     {
