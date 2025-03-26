@@ -241,7 +241,10 @@ exclude:
   - README.md
   - readme_preview/
   - vendor
-  - hifini/
+  - hifini/songs/
+  - hifini/downloaded_files/
+  - hifini/d4chromedriver/
+  - hifini/local/
 keep_files:
   - CNAME
   - .nojekyll
