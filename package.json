@@ -1,10 +1,10 @@
 {
   "devDependencies": {
     "@shopify/prettier-plugin-liquid": "1.4.0",
-    "prettier": "^3.1.1"
+    "prettier": "^3.5.3"
   },
   "dependencies": {
     "aplayer": "^1.10.1",
-    "pdfjs-dist": "^4.8.69"
+    "pdfjs-dist": "^4.10.38"
   }
 }
