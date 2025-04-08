@@ -10,10 +10,10 @@
 email: dawnwei.song@gmail.com # your email address
 # facebook_id: # your facebook id
 # flickr_id: # your flickr id
-# github_username: # your GitHub user name
+github_username: dawnsong # your GitHub user name
 # gitlab_username: # your GitLab user name
 # ieee_id: # your ieeexplore.ieee.org/author/id
-inspirehep_id: #1010907 # Inspire HEP author ID
+# inspirehep_id: #1010907 # Inspire HEP author ID
 # instagram_id: # your instagram id
 # kaggle_id: # your kaggle id
 # keybase_username: # your keybase user name
@@ -29,7 +29,7 @@ inspirehep_id: #1010907 # Inspire HEP author ID
 # publons_id: # your ID on Publons
 # quora_username: # your Quora username
 # research_gate_profile: # your profile on ResearchGate
-rss_icon: true # set to true to show the RSS icon
+rss_icon: false # set to true to show the RSS icon
 scholar_userid: b2M-4scAAAAJ #qc6CJjYAAAAJ # your Google Scholar ID
 # scopus_id: # your profile on Scopus
 # semanticscholar_id: # your Semantic Scholar ID
