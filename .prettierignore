@@ -13,5 +13,6 @@ assets/js/xiaowei4osm.js
 hifini/xhifini.js
 hifini/xplayer.js
 hifini/xplayer.template.js
+hifini/*chromedriver/**
 _pages/about.md
 _scripts/search.liquid.js
