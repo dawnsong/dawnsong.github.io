@@ -7,7 +7,7 @@ first_name: Xiaowei
 middle_name:
 last_name: Song
 contact_note: >
-  Email me for collaboration (<img src="assets/dawnwei.song.svg" style="fill: currentColor; line-height: 1; height: 1em;" alt="dawnwei.song AT/"/> @foxmail.com)
+  Email me for collaboration (<img src="/assets/dawnwei.song.svg" style="fill: currentColor; line-height: 1; height: 1em;" alt="dawnwei.song AT/"/> @foxmail.com)
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
   Research on robust machine learning methods with Big data on healthcare, MRI and cryoET/cryoEM
 footer_text: >
