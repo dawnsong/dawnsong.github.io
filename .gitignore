@@ -11,3 +11,13 @@ assets/libs/
 node_modules/
 vendor
 .idea
+*.lock*
+*.bak
+*.mp3
+*.m4a
+*.log
+*.LOG
+*.404
+*.tmp
+hifini/songs.txt.20240922
+*lock.json
