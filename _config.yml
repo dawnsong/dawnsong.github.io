@@ -4,21 +4,21 @@
 
 title: Robust # the website title (if blank, full name will be used instead)
 first_name: Xiaowei
-middle_name: 
+middle_name:
 last_name: Song
 contact_note: >
-  Email me for colaboration (dawnwei.song AT|@ foxmail.com)
+  Email me for collaboration (dawnwei.song AT|@ foxmail.com)
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
   Research on robust machine learning methods with Big data on healthcare, MRI and cryoET/cryoEM
 footer_text: >
   PPowered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> | <a href="https://github.com/alshedivat/al-folio">al-folio</a>.
   <div id="xplayer" style="text-align: left;"></div><script type="text/javascript" src="/hifini/xplayer.js"></script>
-keywords: robust, big data, MRI, cryoET, cryoEM, healthcare  # add your own keywords or leave empty
+keywords: robust, big data, MRI, cryoET, cryoEM, healthcare # add your own keywords or leave empty
 lang: cn # the language of your site (for example: en, fr, cn, ru, etc.)
 icon: ⚛️ # the emoji used as the favicon (alternatively, provide image name in /assets/img/)
 
 url: https://dawnsong.github.io # the base hostname & protocol for your site
-baseurl:  # the subpath of your site, e.g. /blog/. Leave blank for root
+baseurl: # the subpath of your site, e.g. /blog/. Leave blank for root
 last_updated: true # set to true if you want to display last updated in the footer
 impressum_path: # set to path to include impressum link in the footer, use the same path as permalink in a page, helps to conform with EU GDPR
 back_to_top: true # set to false to disable the back to top button
@@ -110,7 +110,7 @@ giscus:
   mapping: pathname #title # identify discussions by post title
   strict: 1 # use strict identification mode
   reactions_enabled: 1 # enable (1) or disable (0) emoji reactions
-  input_position: top  #bottom # whether to display input form below (bottom) or above (top) the comments
+  input_position: top #bottom # whether to display input form below (bottom) or above (top) the comments
   theme: preferred_color_scheme # name of the color scheme (preferred works well with al-folio light/dark mode)
   emit_metadata: 0
   lang: en
