@@ -1,7 +1,6 @@
-plugins: ["@shopify/prettier-plugin-liquid"]
+#plugins: ["@shopify/prettier-plugin-liquid"]
 trailingComma: "es5"
 
 tabWidth: 2
 useTabs: false
 printWidth: 80
-write: true

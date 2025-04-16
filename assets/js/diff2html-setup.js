@@ -12,7 +12,12 @@ document.addEventListener("readystatechange", () => {
       let diffElement = document.createElement("div");
       diffElement.classList.add("diff2html");
       backup.after(diffElement);
-      const configuration = { colorScheme: diff2HtmlTheme, drawFileList: true, highlight: true, matching: "lines" };
+      const configuration = {
+        colorScheme: diff2HtmlTheme,
+        drawFileList: true,
+        highlight: true,
+        matching: "lines",
+      };
       const diff2htmlUi = new Diff2HtmlUI(diffElement, textData, configuration);
       diff2htmlUi.draw();
     });
