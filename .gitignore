@@ -21,3 +21,6 @@ vendor
 *.tmp
 hifini/songs.txt.20240922
 *lock.json
+d4chromedriver
+latest_logs
+__*cache*
