@@ -433,6 +433,7 @@ def getFavList(favdb={}):
     # sbd.switch_to.window(win0)
     # desc is putting latter added fav song first, unlike asc
     sbd.uc_open_with_tab('https://hifini.com/my-favorites-1.htm?orderby=desc')
+    sbd.wait_for_element_present("ul.'nav nav-tabs card-header-tabs'",  timeout=30) 
     nfavH = sbd.find_elements(
         By.XPATH, "//ul[@class='nav nav-tabs card-header-tabs']")[0]
     print(nfavH.text)
