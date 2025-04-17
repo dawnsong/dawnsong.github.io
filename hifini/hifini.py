@@ -461,15 +461,15 @@ def getFavList(favdb={}):
 def sign4prize():
     sbd = sb.driver
     sbd.uc_open_with_tab('https://hifini.com/')
-    sbd.wait_for_element_present("//span[@id='sg_sign']", timeout=30)
+    sbd.wait_for_element_present("#sg_sign", timeout=30) #default is CSS selector
     signBtn = sbd.find_element(By.XPATH, '//div[@id="sign"]')
     signPanel = sbd.find_element(By.XPATH, '//span[@id="sg_sign"]')
     print(f"{signBtn.text} | {signPanel.text}")
     # if "已签" != signBtn.text:
     signBtn.click()
     rsleep(minSeconds=30)
-    sbd.uc_open_with_tab('https://hifini.com/')
-    sbd.wait_for_element_present("//span[@id='sg_sign']", timeout=30)
+    # sbd.uc_open_with_tab('https://hifini.com/')
+    sbd.wait_for_element_present("#sg_sign", timeout=30)
     signPanel = sbd.find_element(By.XPATH, '//span[@id="sg_sign"]')
     print(signPanel.text)
 
