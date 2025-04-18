@@ -178,10 +178,15 @@ def isSignedUrlExpired(url):
     logger.warning(f"signExpirationDate {signExpirationDate}-5 | {url} < {datetime.now()} , already expired!!!")
     return True
 
-def rmTroubleChar(name, troubleCharSet=[':', '(', ')', '/', '\\', ' ', "'", '"', '[', ']'], replace2c='-'):
+def rmTroubleChar(name, troubleCharSet=[':', '(', ')', '/', '\\', ' ', "'", '"', '[', ']', '?'], replace2c='-'):
   fn=name
   for p in troubleCharSet:  fn = fn.replace(p, replace2c)
   return fn
+
+def rmTroubleChar0(name, allowedCharSet='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-', replace2c=''):  
+  regex = f'[^{re.escape(allowedCharSet)}]'
+  return re.sub(regex, replace2c, name)
+  
 
 def exportFav(favdb):
     with open(f"songs.txt", 'w') as f:
