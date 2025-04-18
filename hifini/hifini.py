@@ -178,10 +178,15 @@ def isSignedUrlExpired(url):
     logger.warning(f"signExpirationDate {signExpirationDate}-5 | {url} < {datetime.now()} , already expired!!!")
     return True
 
-def rmTroubleChar(name, troubleCharSet=[':', '(', ')', '/', '\\', ' ', "'", '"', '[', ']'], replace2c='-'):
+def rmTroubleChar(name, troubleCharSet=[':', '(', ')', '/', '\\', ' ', "'", '"', '[', ']', '?'], replace2c='-'):
   fn=name
   for p in troubleCharSet:  fn = fn.replace(p, replace2c)
   return fn
+
+def rmTroubleChar0(name, allowedCharSet='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-', replace2c=''):  
+  regex = f'[^{re.escape(allowedCharSet)}]'
+  return re.sub(regex, replace2c, name)
+  
 
 def exportFav(favdb):
     with open(f"songs.txt", 'w') as f:
@@ -433,6 +438,7 @@ def getFavList(favdb={}):
     # sbd.switch_to.window(win0)
     # desc is putting latter added fav song first, unlike asc
     sbd.uc_open_with_tab('https://hifini.com/my-favorites-1.htm?orderby=desc')
+    sbd.wait_for_element_present(".nav.nav-tabs.card-header-tabs",  timeout=30) 
     nfavH = sbd.find_elements(
         By.XPATH, "//ul[@class='nav nav-tabs card-header-tabs']")[0]
     print(nfavH.text)
@@ -461,15 +467,15 @@ def getFavList(favdb={}):
 def sign4prize():
     sbd = sb.driver
     sbd.uc_open_with_tab('https://hifini.com/')
-    sbd.wait_for_element_present("//span[@id='sg_sign']", timeout=30)
+    sbd.wait_for_element_present("#sg_sign", timeout=30) #default is CSS selector
     signBtn = sbd.find_element(By.XPATH, '//div[@id="sign"]')
     signPanel = sbd.find_element(By.XPATH, '//span[@id="sg_sign"]')
     print(f"{signBtn.text} | {signPanel.text}")
     # if "已签" != signBtn.text:
     signBtn.click()
     rsleep(minSeconds=30)
-    sbd.uc_open_with_tab('https://hifini.com/')
-    sbd.wait_for_element_present("//span[@id='sg_sign']", timeout=30)
+    # sbd.uc_open_with_tab('https://hifini.com/')
+    sbd.wait_for_element_present("#sg_sign", timeout=30)
     signPanel = sbd.find_element(By.XPATH, '//span[@id="sg_sign"]')
     print(signPanel.text)
 
