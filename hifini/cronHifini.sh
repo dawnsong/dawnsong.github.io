@@ -12,6 +12,7 @@ python ./hifini.py sign
 #if [[ $(date +%a) == "Sat" && "AM" == $(date +%p) ]]; then
 if [[ $(date +%a) =~ "^(Sat|Wed)$" && "AM" == $(date +%p) ]]; then
     timeout -k 1m -s SIGKILL 10h python ./hifini.py 
+    ./findNonSongs.sh -rm  2>&1 |tee nonSongs.log
     #upload/rsync songs to google bucket
-    gcloud storage rsync   $HOME/dawn/dawnsong.github.io/hifini/songs/ gs://xmusic/q/ --recursive --delete-unmatched-destination-objects
+    gcloud storage rsync  ./songs/ gs://xmusic/q/ --recursive --delete-unmatched-destination-objects
 fi
