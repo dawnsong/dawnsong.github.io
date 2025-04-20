@@ -11,5 +11,5 @@ children:
   - title: blog
     permalink: /blog/
   - title: publications
-    permalink: /publications/?x=100  
+    permalink: /publications/?x=100
 ---
