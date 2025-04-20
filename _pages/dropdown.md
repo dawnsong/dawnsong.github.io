@@ -10,4 +10,6 @@ children:
   - title: divider
   - title: blog
     permalink: /blog/
+  - title: publications
+    permalink: /publications/?x=100  
 ---
