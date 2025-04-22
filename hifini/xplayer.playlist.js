@@ -1,0 +1,1 @@
+var songs=[{name:"\u5fc3\u8bed",artist:"\u97e9\u7ea2",url:"https://m10.music.126.net/20241025071049/00447b54ffe8987601202836dc77afff/ymusic/b6a0/40b2/c2ec/56d125e8b8d92f37f9e084240090f750.mp3",lrc:"/hifini/\u5fc3\u8bed-\u97e9\u7ea2.lrc",pic:"http://img1.kuwo.cn/star/albumcover/500/29/33/2480739608.jpg"}];
