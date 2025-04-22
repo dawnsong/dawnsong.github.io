@@ -15,4 +15,5 @@ if [[ $(date +%a) =~ "^(Sat|Wed)$" && "AM" == $(date +%p) ]]; then
     ./findNonSongs.sh -rm  2>&1 |tee nonSongs.log
     #upload/rsync songs to google bucket
     gcloud storage rsync  ./songs/ gs://xmusic/q/ --recursive --delete-unmatched-destination-objects
+    gcloud storage cp ./playlist.js  gs://xpub/js/
 fi
