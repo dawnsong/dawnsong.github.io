@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: <a href='#'>Affiliations:</a> GDIT, NIDA/NIH
+subtitle: <a href='#'>Worked for:</a> GDIT, NIDA/NIH, Northwestern University | UMBC, IBP/CAS, BNU, Tegang/Shougang
 
 profile:
   align: right
