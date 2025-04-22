@@ -15,5 +15,11 @@ if [[ $(date +%a) =~ "^(Sat|Wed)$" && "AM" == $(date +%p) ]]; then
     ./findNonSongs.sh -rm  2>&1 |tee nonSongs.log
     #upload/rsync songs to google bucket
     gcloud storage rsync  ./songs/ gs://xmusic/q/ --recursive --delete-unmatched-destination-objects
-    gcloud storage cp ./playlist.js  gs://xpub/js/
+    #upload my playlist
+    gcloud storage cp ./playlist.js  gs://xpub/js/playlist.js
+    #get permissions
+    gcloud storage objects describe  gs://xpub/js/playlist.js
+    gsutil  iam get gs://xpub/js/playlist.js
+    #set public
+    gcloud storage objects update gs://xpub/js/playlist.js --add-acl-grant=entity=allUsers,role=READER
 fi
