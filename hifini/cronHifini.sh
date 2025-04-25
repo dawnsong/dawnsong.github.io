@@ -12,8 +12,13 @@ function crawlFav(){
     timeout -k 1m -s SIGKILL 10h python ./hifini.py fav
 }
 function exportFav(){ #essentially run on every day's morning
-    python ./hifini.py export
     ./findNonSongs.sh -rm  2>&1 |tee nonSongs.log
+
+    #scan songs dir and add local songs that were not cached in favdb
+    python ./hifini.py updateSongs
+    #export playlist.js
+    python ./hifini.py export
+
     #upload/rsync songs to google bucket
     gcloud storage rsync  ./songs/ gs://xmusic/q/ --recursive --delete-unmatched-destination-objects
     #upload my playlist
@@ -27,11 +32,11 @@ function exportFav(){ #essentially run on every day's morning
 
 #check if today is Sunday, if is then I will download music/songs from my online fav
 #if [[ $(date +%a) == "Sat" && "AM" == $(date +%p) ]]; then
-if [[ $(date +%a) =~ "^(Sat|Thu|Tue)$" && "AM" == $(date +%p) ]]; then
+if [[ $(date +%a) =~ ^(Sat|Thu|Tue)$ && AM == $(date +%p) ]]; then
     crawlFav   
     exportFav 
 fi
 
-if [[ $(date +%a) =~ "^(Mon|Wed|Fri|Sun)$" && "AM" == $(date +%p) ]]; then
+if [[ $(date +%a) =~ ^(Mon|Wed|Fri|Sun)$ ]]; then
     exportFav
 fi 

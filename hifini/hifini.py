@@ -548,21 +548,23 @@ def main():
                 finally:
                     joblib.dump([favdb], fzdb)  # save after parsing each NPI
                     exportFav(favdb)
-                    # save cached google storaged URLs
-                    joblib.dump([favdb], fzdb)
+                    
             case 'sign':
                 sign4prize()
             case 'export':
                 exportFav(favdb)
-                joblib.dump([favdb], fzdb)  # save cached google storaged URLs
+                
+            case 'updateSongs': #scan local songs dir that might contain many songs that were not registered with my local cached favdb
+                favdb = updateLocalFav('./songs', favdb)
+                
             case 'rmGoogleCache':
                 k2rm=[k for k in favdb.keys() if 'isGoogleStored' in k]
                 for k in k2rm: favdb.pop(k)
-                joblib.dump([favdb], fzdb) 
+                
             case _:
                 logger.info('Unknown operation, fav/sign supported')
                 return
-
+        joblib.dump([favdb], fzdb)# save cached google storaged URLs
 
 if __name__ == "__main__":
     main()
