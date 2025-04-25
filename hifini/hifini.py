@@ -136,8 +136,12 @@ def updateLocalFav(ld='./local', favdb={}):
             # assume I have uploaded all local files to Google Storage, i.e., I don't waste time to check again
             # favdb[f'url:{Path(fn).stem}'] = quote(gurl+fn, safe=':/')
             # favdb[f'pic:{Path(fn).stem}'] = quote(gurl+Path(fn).with_suffix('.jpg').name, safe=':/')
-            favdb[f'url:{Path(fn).stem}'] = mkGoogleSignedUrl4download(f"{Path(ld).stem}/{fn}", bucket_name='xmusic')
-            favdb[f'pic:{Path(fn).stem}'] = mkGoogleSignedUrl4download(f"{Path(ld).stem}/{Path(fn).with_suffix('.jpg').name}", bucket_name='xmusic')
+            urlk=f'url:{Path(fn).stem}'
+            if urlk in favdb and not isSignedUrlExpired(favdb[urlk]):
+                logger.info(f'Already indexed and not expired yet, {urlk}')
+            else:
+                favdb[urlk] = mkGoogleSignedUrl4download(f"{Path(ld).stem}/{fn}", bucket_name='xmusic')
+                favdb[f'pic:{Path(fn).stem}'] = mkGoogleSignedUrl4download(f"{Path(ld).stem}/{Path(fn).with_suffix('.jpg').name}", bucket_name='xmusic')
         else:
             logger.warning(f"Ignore {fp} since it is not audio BUT {mgc}")
     return favdb
