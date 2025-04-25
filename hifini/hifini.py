@@ -141,7 +141,9 @@ def updateLocalFav(ld='./local', favdb={}):
                 logger.info(f'Already indexed and not expired yet, {urlk}')
             else:
                 favdb[urlk] = mkGoogleSignedUrl4download(f"{Path(ld).stem}/{fn}", bucket_name='xmusic')
-                favdb[f'pic:{Path(fn).stem}'] = mkGoogleSignedUrl4download(f"{Path(ld).stem}/{Path(fn).with_suffix('.jpg').name}", bucket_name='xmusic')
+                pic=f'pic:{Path(fn).stem}'
+                if pic not in favdb: #todo, deal with pic not existing in gcloud, 20250425
+                    favdb[pic] = mkGoogleSignedUrl4download(f"{Path(ld).stem}/{Path(fn).with_suffix('.jpg').name}", bucket_name='xmusic')
         else:
             logger.warning(f"Ignore {fp} since it is not audio BUT {mgc}")
     return favdb
