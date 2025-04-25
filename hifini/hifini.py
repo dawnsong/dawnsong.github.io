@@ -16,6 +16,8 @@ import urllib.parse
 from pathlib import Path
 from datetime import datetime, timedelta
 from dateutil import parser
+# import numba 
+
 # ----------------------------------------------------
 # configure log for cmd line
 with Path(f'{__file__}.LOG').open("a") as LOG:
@@ -56,7 +58,7 @@ from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options as EdgeOptions
 
 # import chatPDF #20230818, use chatPDF.com API to extract receipts info
-
+import traceback
 import logging
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(lineno)s - %(levelname)s - %(message)s')
@@ -119,6 +121,13 @@ def isMusicSongFile(fp) -> Tuple[bool, str]:
             return True, mgc
     return False, mgc
 
+def summary4favdb(favdb):
+    ul=[u for u in favdb if 'url:'==u[:4]]
+    logger.info(f'len(url:)={len(ul)}')
+    
+    fl=[f for f in favdb if 'file:'==f[:5]]    
+    logger.info(f'len(file:)={len(fl)}')
+    
 
 def updateLocalFav(ld='./local', favdb={}):
     # from pathlib import Path
@@ -137,9 +146,11 @@ def updateLocalFav(ld='./local', favdb={}):
             # favdb[f'url:{Path(fn).stem}'] = quote(gurl+fn, safe=':/')
             # favdb[f'pic:{Path(fn).stem}'] = quote(gurl+Path(fn).with_suffix('.jpg').name, safe=':/')
             urlk=f'url:{Path(fn).stem}'
+            fk=f'file:{Path(fn).stem}'
             if urlk in favdb and not isSignedUrlExpired(favdb[urlk]):
                 logger.info(f'Already indexed and not expired yet, {urlk}')
             else:
+                favdb[fk]=Path(fn).name
                 favdb[urlk] = mkGoogleSignedUrl4download(f"{Path(ld).stem}/{fn}", bucket_name='xmusic')
                 pic=f'pic:{Path(fn).stem}'
                 if pic not in favdb: #todo, deal with pic not existing in gcloud, 20250425
@@ -173,16 +184,21 @@ def isSignedUrlExpired(url):
   from urllib.parse import urlparse, parse_qs
   parsed_url = urlparse(url)
   query_params = parse_qs(parsed_url.query) 
-  signDate=query_params['X-Goog-Date'][0]
-  signExpiration=query_params['X-Goog-Expires'][0]
-  from datetime import datetime, timedelta ,timezone
-  signExpirationDate=datetime.strptime(signDate, "%Y%m%dT%H%M%SZ")+ timedelta(seconds=float(signExpiration), hours=-5) #embed -5 timezone info into the delta
-  if signExpirationDate>=datetime.now():  #toCheck: .replace(tzinfo=timezone.utc) not work yet
-    logger.info(f"signExpirationDate {signExpirationDate}-5 >= {datetime.now()} not expired!")
-    return False 
-  else: 
-    logger.warning(f"signExpirationDate {signExpirationDate}-5 | {url} < {datetime.now()} , already expired!!!")
-    return True
+  expired=True
+  try: #in case old URLs does not have google cache/xgcloud keys
+    signDate=query_params['X-Goog-Date'][0]
+    signExpiration=query_params['X-Goog-Expires'][0]
+    from datetime import datetime, timedelta ,timezone
+    signExpirationDate=datetime.strptime(signDate, "%Y%m%dT%H%M%SZ")+ timedelta(seconds=float(signExpiration), hours=-5) #embed -5 timezone info into the delta
+    if signExpirationDate>=datetime.now():  #toCheck: .replace(tzinfo=timezone.utc) not work yet
+        logger.info(f"signExpirationDate {signExpirationDate}-5 >= {datetime.now()} not expired yet.")
+        expired=False 
+    else: 
+        logger.warning(f"signExpirationDate {signExpirationDate}-5 | {url} < {datetime.now()} , already expired!!!")        
+  except Exception as e:
+    logger.exception(f'{e}')
+    traceback.print_exc()
+  return expired
 
 def rmTroubleChar(name, troubleCharSet=[':', '(', ')', '/', '\\', ' ', "'", '"', '[', ']', '?'], replace2c='-'):
   fn=name
@@ -197,7 +213,8 @@ def rmTroubleChar0(name, allowedCharSet='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLM
 def exportFav(favdb):
     with open(f"songs.txt", 'w') as f:
         f.write("")
-    for k in tqdm([ku for ku in favdb.keys() if re.match(r'url:', ku)]):
+    # for k in tqdm([ku for ku in favdb.keys() if re.match(r'url:', ku)]):
+    for k in tqdm([ku for ku in favdb.keys() if 'url:'==ku[:4]]):
         logger.info(f"exporting {k}: {favdb[k]}")
         kk = k.replace('url:', '')
         artist = re.sub('__.*', '', kk)
@@ -212,12 +229,14 @@ def exportFav(favdb):
         url = favdb[k]
         if fk in favdb:
             # only check if I have not checked with my google storage
-            if (not (gk in favdb and favdb[gk] and not isSignedUrlExpired(favdb[gURL]))) and ('404' not in favdb[fk]): #ignore mp3/m4a filename having 404
-                url, favdb[gk] = fn2googleStorageURL(favdb[fk], favdb[k])
-                logger.debug(f"{gk} = {favdb[gk]}")
-                # rsleep(3)
-                if favdb[gk]:
-                    favdb[gURL] = url
+            if ('404' not in favdb[fk]): #ignore mp3/m4a filename having 404
+                if not (gk in favdb and favdb[gk] and not isSignedUrlExpired(favdb[gURL])):
+                    url, favdb[gk] = fn2googleStorageURL(favdb[fk], favdb[k])
+                    logger.debug(f"{gk} = {favdb[gk]}")
+                    # rsleep(3)
+                    if favdb[gk]:
+                        favdb[gURL] = url
+            else: logger.info(f"404 song files are ignored: {favdb[fk]}")
             if gk in favdb and favdb[gk]:
                 url = favdb[gURL]
                 logger.info(f"use Google Storage url: {url}")
@@ -545,32 +564,35 @@ def main():
         # driver.switch_to.new_window('window')
         # win1=driver.current_window_handle
         # driver.switch_to.window(driver.window_handles[1])
-        match op:
-            case 'fav':
-                try:
-                    favdb = getFavList(favdb)
-                    # scan, update, and export local fav music song files, assuming I have uploaded to Google storage
-                    favdb = updateLocalFav('./local', favdb)
-                finally:
-                    joblib.dump([favdb], fzdb)  # save after parsing each NPI
+        try:
+            match op:
+                case 'fav':
+                    try:
+                        favdb = getFavList(favdb)                    
+                        # scan, update, and export local fav music song files, assuming I have uploaded to Google storage
+                        favdb = updateLocalFav('./local', favdb)
+                    finally:
+                        joblib.dump([favdb], fzdb)  # save after parsing each NPI
+                        exportFav(favdb)
+                        
+                case 'sign':
+                    sign4prize()
+                case 'export':
                     exportFav(favdb)
                     
-            case 'sign':
-                sign4prize()
-            case 'export':
-                exportFav(favdb)
-                
-            case 'updateSongs': #scan local songs dir that might contain many songs that were not registered with my local cached favdb
-                favdb = updateLocalFav('./songs', favdb)
-                
-            case 'rmGoogleCache':
-                k2rm=[k for k in favdb.keys() if 'isGoogleStored' in k]
-                for k in k2rm: favdb.pop(k)
-                
-            case _:
-                logger.info('Unknown operation, fav/sign supported')
-                return
-        joblib.dump([favdb], fzdb)# save cached google storaged URLs
+                case 'updateSongs': #scan local songs dir that might contain many songs that were not registered with my local cached favdb
+                    favdb = updateLocalFav('./songs', favdb)
+                    
+                case 'rmGoogleCache':
+                    k2rm=[k for k in favdb.keys() if 'isGoogleStored' in k]
+                    for k in k2rm: favdb.pop(k)
+                    
+                case _:
+                    logger.info('Unknown operation, fav/sign supported')
+                    return
+        finally:
+            summary4favdb(favdb)
+            joblib.dump([favdb], fzdb)# save cached google storaged URLs
 
 if __name__ == "__main__":
     main()

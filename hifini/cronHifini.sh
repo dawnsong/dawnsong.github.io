@@ -13,16 +13,18 @@ function crawlFav(){
 }
 function exportFav(){ #essentially run on every day's morning
     ./findNonSongs.sh -rm  2>&1 |tee nonSongs.log
+    #upload/rsync songs to google bucket
+    gcloud storage rsync  ./songs/ gs://xmusic/q/ --recursive --delete-unmatched-destination-objects
 
     #scan songs dir and add local songs that were not cached in favdb
     python ./hifini.py updateSongs
+    rsleep 3
     #export playlist.js
     python ./hifini.py export
-
-    #upload/rsync songs to google bucket
-    gcloud storage rsync  ./songs/ gs://xmusic/q/ --recursive --delete-unmatched-destination-objects
+    rsleep 3
     #upload my playlist
     gcloud storage cp ./playlist.js  gs://xpub/js/playlist.js
+
     #get permissions
     gcloud storage objects describe  gs://xpub/js/playlist.js
     gsutil  iam get gs://xpub/js/playlist.js
