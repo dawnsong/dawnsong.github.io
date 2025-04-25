@@ -1,3 +1,11 @@
+var songs=[
+  {
+    name: '心语',
+    artist: '韩红',
+    url: 'https://m10.music.126.net/20241025071049/00447b54ffe8987601202836dc77afff/ymusic/b6a0/40b2/c2ec/56d125e8b8d92f37f9e084240090f750.mp3' ,
+    lrc: '/hifini/心语-韩红.lrc',
+    pic: 'http://img1.kuwo.cn/star/albumcover/500/29/33/2480739608.jpg',
+  },
 {
 name: '你的答案--DJ弹鼓版-' ,
 artist: '唐小力' ,
@@ -8958,4 +8966,73 @@ name: '寂寞沙洲冷' ,
 artist: '周传雄' ,
 url: 'https://storage.googleapis.com/xmusic/q/%E5%91%A8%E4%BC%A0%E9%9B%84__%E5%AF%82%E5%AF%9E%E6%B2%99%E6%B4%B2%E5%86%B7.m4a?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=xgcloud%40sigma-smile-436711-b7.iam.gserviceaccount.com%2F20250425%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250425T212300Z&X-Goog-Expires=604800&X-Goog-SignedHeaders=host&X-Goog-Signature=71b19b94b1bfb54e08949e85a5c12d13c4c3e37b67a31462f1caca795f0db1b78a20d40a84dde4312d779186ac607a4dfa06c99f9fabaf4d359b2f7a24e826bf8c9e78220c142836e7f3f6602bb55eaddc1410f10c72fb49b57814b3caef326036c8d9c465f8c9898590f919bbb43d03dd4f4cb628412dceabf97db03441ca66a606d122d93426f77bdcd2ec4e38c0f26f9424199941498c0a0977984c5baeda7f2755e86902d680649912ecd07a1f749c043087b959a764912cc12f963e1818d08262656bace42397d0ff7e72eec64fa62bbf00ab5c7f285505ebc15fde7e0b36d9adc2ea67b2a37ad31d563a26d64cac1f5132cc96ada27ebabf56991248b3' ,
 cover: 'https://storage.googleapis.com/xmusic/songs/%E5%91%A8%E4%BC%A0%E9%9B%84__%E5%AF%82%E5%AF%9E%E6%B2%99%E6%B4%B2%E5%86%B7.jpg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=xgcloud%40sigma-smile-436711-b7.iam.gserviceaccount.com%2F20250425%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250425T211912Z&X-Goog-Expires=604800&X-Goog-SignedHeaders=host&X-Goog-Signature=83189027d440f1d41ae0948b753e7324c339a0c67ca344219fa055be65b3ee14bc625d7f325000d5122f769ea1ee66907d2ccf37ff05fbf27eafddce4f009cd789e658ac6de605e7e4c4b23a7a8d0ec8b275b62f14c7db33da1488cb279c6e6c78a2192c1238397551b1718fb82cbd1c0bb2125c4e5c75519d57f3656f5ba90e8a08b33801422e87ab57a788fb954fddc76d0889a0d7a92e8a8f5f827f6b8867911c628dee53f7f763f4d201e0936ddf45cc28ddee0173a115744ee2d76f5ac00ff559418823a2820353c400680721213deadc003c6c9e641ab82d4f8e93c53f9c40d49098289dad495ace2ac489968b114aea90123dee23a627190b585d2af7'  ,
-},
+},];
+// function getRandomSubarray(arr, size) {
+//   var shuffled = arr.slice(0), i = arr.length, min = i - size, temp, index;
+//   while (i-- > min) {
+//       index = Math.floor((i + 1) * Math.random());
+//       temp = shuffled[index];
+//       shuffled[index] = shuffled[i];
+//       shuffled[i] = temp;
+//   }
+//   return shuffled.slice(min);
+// }
+// function moveDivToUl() {
+//   // const newLi = document.createElement("li");
+//   // // Move the div inside the new li
+//   // newLi.appendChild($("#xplayer"));
+//   // Add the li to the ul
+//   // $("div.page__footer-follow > ul.social-icons > li:last-child").appendChild($("#xplayer"));
+//   // var li=$("div.page__footer-follow > ul.social-icons > li:nth-child(1)");
+//   //this selection only works after I have put xplayer div behind all the ul > li in footer.html instead of footer/custom.html
+//   var li=$("div.page__footer-follow > ul.social-icons > li:nth-child(1)");
+//   li.css('color','red');
+//   console.log(li.text());
+//   // console.log(li.parent().text());
+//   // $("ul.social-icons > li:nth-child(3)").appendChild($("#xplayer"));
+//   //to debug
+// }
+// // moveDivToUl();
+// function getParam(name, defaultValue) {
+//   const urlParams = new URLSearchParams(window.location.search);
+//   const value = urlParams.get(name);
+
+//   return value !== null ? value : defaultValue;
+// }
+
+// var ap = new APlayer({
+//   element: document.getElementById('xplayer'),
+//   narrow: false,
+//   //fixed: true, //<!--吸底模式 -->  
+//   mini: false, 
+//   autoplay: false, // Google Chrome disabled autoplay and require user's response before auto playback
+//   loop: 'all',
+//   order: 'random',
+//   volume: 1,
+//   preload: 'none', //'auto',
+//   showlrc: false, //
+//   lrctype:3,
+//   mutex: true,
+//   theme:  '#ad7a86', // '#b7daff',  //'#0a0a0f',//
+//   listFolded: true,
+//   audio: getRandomSubarray(songs, getParam('x', 10))
+// });
+// //save decoded hifini URLs (i.e., qq music url) to local cookies
+// // ap.on('play', function () {
+// //   console.log('Start playing song: ' + ap.list.index );
+// //   console.log('URL: ' + ap.list.audios[ap.list.index].url);
+// //   console.log(ap.list.audios[ap.list.index]);
+// //   //console.log(null==ap.audios); //true
+// //   console.log("src: "+ ap.audio.src)
+// //   console.log(ap.audio)  
+// // });
+
+// // ap.on('loadeddata', function () {
+// //   console.log('loadeddata of song: ' + ap.list.index );
+// //   console.log('URL: ' + ap.list.audios[ap.list.index].url);
+// //   console.log(ap.list.audios[ap.list.index]);
+// //   //console.log(null==ap.audios); //true
+// //   console.log("src: "+ ap.audio.src)
+
+// //   console.log(ap.audio.buffered)
+// // });
