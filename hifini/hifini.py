@@ -209,7 +209,7 @@ def exportFav(favdb):
             if (not (gk in favdb and favdb[gk] and not isSignedUrlExpired(favdb[gURL]))) and ('404' not in favdb[fk]): #ignore mp3/m4a filename having 404
                 url, favdb[gk] = fn2googleStorageURL(favdb[fk], favdb[k])
                 logger.debug(f"{gk} = {favdb[gk]}")
-                rsleep(3)
+                # rsleep(3)
                 if favdb[gk]:
                     favdb[gURL] = url
             if gk in favdb and favdb[gk]:

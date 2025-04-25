@@ -8,10 +8,11 @@ cd /home/dawnsong/dawn/dawnsong.github.io/hifini
 exec > >(tee hifini.log) 2>&1
 python ./hifini.py sign
 
-#check if today is Sunday, if is then I will download music/songs from my online fav
-#if [[ $(date +%a) == "Sat" && "AM" == $(date +%p) ]]; then
-if [[ $(date +%a) =~ "^(Sat|Wed)$" && "AM" == $(date +%p) ]]; then
-    timeout -k 1m -s SIGKILL 10h python ./hifini.py 
+function crawlFav(){
+    timeout -k 1m -s SIGKILL 10h python ./hifini.py fav
+}
+function exportFav(){ #essentially run on every day's morning
+    python ./hifini.py export
     ./findNonSongs.sh -rm  2>&1 |tee nonSongs.log
     #upload/rsync songs to google bucket
     gcloud storage rsync  ./songs/ gs://xmusic/q/ --recursive --delete-unmatched-destination-objects
@@ -22,4 +23,15 @@ if [[ $(date +%a) =~ "^(Sat|Wed)$" && "AM" == $(date +%p) ]]; then
     gsutil  iam get gs://xpub/js/playlist.js
     #set public
     gcloud storage objects update gs://xpub/js/playlist.js --add-acl-grant=entity=allUsers,role=READER
+}
+
+#check if today is Sunday, if is then I will download music/songs from my online fav
+#if [[ $(date +%a) == "Sat" && "AM" == $(date +%p) ]]; then
+if [[ $(date +%a) =~ "^(Sat|Thu|Tue)$" && "AM" == $(date +%p) ]]; then
+    crawlFav   
+    exportFav 
 fi
+
+if [[ $(date +%a) =~ "^(Mon|Wed|Fri|Sun)$" && "AM" == $(date +%p) ]]; then
+    exportFav
+fi 
