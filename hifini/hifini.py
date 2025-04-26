@@ -540,7 +540,7 @@ def getTopCommentedSongs(favdb={}, minNComments=10000, topPages=10, forumId=1): 
             href=downloadList[fk]
             favPage={}            
             favPage[f'hifini:{fk}'] = href
-            logger.info(f"NEW {fk} < {href}")
+            logger.info(f"NEW {fk} | {commentsN[fk]} < {href}")
             favPage, favdb=getSong(href, fk=fk, favPage=favPage, favdb=favdb)
             favdb.update(favPage)
             rsleep(30, minSeconds=10) #, silent=True)
