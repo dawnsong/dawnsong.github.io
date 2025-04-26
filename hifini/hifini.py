@@ -92,9 +92,9 @@ win0 = ''
 win1 = ''
 
 
-def rsleep(maxSeconds=180, minSeconds=1):
+def rsleep(maxSeconds=180, minSeconds=1, silent=False):
     rsec = randint(minSeconds, maxSeconds)
-    print(f"random sleep {rsec} seconds")
+    if not silent: print(f"random sleep {rsec} seconds", file=sys.stderr)
     time.sleep(rsec)
 
 
@@ -294,9 +294,9 @@ def hifiniHeaders(rURL, bytesEnd=''):
     return hifiniHeaders
 
 
-def requestsHeader(mURL, rURL):
+def requestsHeader(mURL, rURL, timeout=60):
     # if '.hifini.com' in mURL:
-    return requests.head(mURL, allow_redirects=True, stream=False, headers=hifiniHeaders(rURL, bytesEnd='0'))
+    return requests.head(mURL, allow_redirects=True, stream=False, headers=hifiniHeaders(rURL, bytesEnd='0'), verify=False, timeout=timeout)
     # else:
     #   return requests.head(mURL, allow_redirects=True, stream=False)
 
@@ -353,7 +353,68 @@ def guessSongFilename(qUrl, author='', title='', dir4songs='songs/'):
     fn =rmTroubleChar(fn)  # remove all illegal filenames in Windows        
     return "songs/"+fn
   
+def getSong(href, fk=r'file:{artist}__{name}', favPage={}, favdb={}):
+    sbd = sb.driver
+    sbd.uc_open_with_tab(href)
+    # rsleep(3)
+    # sbd.wait_for_element_present("div.player4", timeout=20)
+    sbd.highlight(By.XPATH, "//div[@id='player4']")
+    # sb.activate_jquery()
+    # print(sbd.execute_script("return jQuery('ap4.list')"))
+    # sbd.execute_script("jQuery('console.log(ap4)')")
+    mUrl = sbd.execute_script("return ap4.music.url")
+    if 'http' not in mUrl:
+        mUrl = f'https://hifini.com/{mUrl}'
+    title = sbd.execute_script("return ap4.music.title").strip()
+    author = sbd.execute_script("return ap4.music.author").strip().replace(
+        '/', '-').replace('\\', '-')
+    pic = sbd.execute_script("return ap4.music.pic")
+    logger.info(f'{title} - {author} : {mUrl}')
+    favPage[f'pic:{author}__{title}'] = pic
+    favPage[f'url:{author}__{title}'] = mUrl
+    favPage[f'file:{author}__{title}'] = ''
+    # get redirected QQ url for the music
+    # #this will download the music
+    # sbd.uc_open_with_tab(f'https://hifini.com/{mUrl}')
+    # rsleep(3)
+    # qUrl=sbd.current_url
 
+    # requests.head(mUrl, allow_redirects=True, stream=False) #, headers=hifiniHeaders) #only metadata, not to download
+    r = requestsHeader(mUrl, href)
+    qUrl = None
+    # 401/403 means not logged-in/authorized, but I still want to try if body is possible !
+    if r.status_code in {200, 206, 401, 403}:
+        logger.info(f"header: {r} , mUrl: {mUrl}")
+        qUrl = r.url
+        # if '404' in qUrl:
+        #   #deal with 404 from music.163.com/404
+        #   logging.warning(f'404 found qUrl: {qUrl} , i.e., the 200/206 returned header URL for the song')
+        # else:
+        # if 1==1:
+        favPage[f'url:{author}__{title}'] = qUrl
+        fn = guessSongFilename(qUrl, author=author,
+                                title=title, dir4songs='songs/')
+        favPage[f'file:{author}__{title}'] = Path(fn).name  # only basename
+        if not Path(fn).exists():
+            logger.info(f"Downloading song `{fn}` from {qUrl}")
+            # , headers=hifiniHeaders) as r:
+            with requestsGet(qUrl, href) as r:
+                with open(fn, 'wb') as f:
+                    shutil.copyfileobj(r.raw, f)
+        else:
+            logger.info(
+                f"SONG file {fn} already exists, ignore downloading")
+        if Path(fn).exists():
+            # update link from fav list to real downloaded music filename
+            favdb[fk] = Path(fn).name
+            logger.info(
+                f"SONG {fn} exists| {favdb[fk]} is MARKED downloaded")
+    else:
+        logger.warning(r)
+    # logging.info(qUrl)
+    logger.info(f'{title} - {author} : {qUrl}')
+    return favPage, favdb
+    
 def getFavSongs(url, favdb={}):
     sbd = sb.driver
     sbd.uc_open_with_tab(url)
@@ -393,69 +454,12 @@ def getFavSongs(url, favdb={}):
             continue
 
         logger.info(f"NEW {fk}")
-
         href = favPage[hrefs[i]]
-        sbd.uc_open_with_tab(href)
-        # rsleep(3)
-        # sbd.wait_for_element_present("div.player4", timeout=20)
-        sbd.highlight(By.XPATH, "//div[@id='player4']")
-        # sb.activate_jquery()
-        # print(sbd.execute_script("return jQuery('ap4.list')"))
-        # sbd.execute_script("jQuery('console.log(ap4)')")
-        mUrl = sbd.execute_script("return ap4.music.url")
-        if 'http' not in mUrl:
-            mUrl = f'https://hifini.com/{mUrl}'
-        title = sbd.execute_script("return ap4.music.title").strip()
-        author = sbd.execute_script("return ap4.music.author").strip().replace(
-            '/', '-').replace('\\', '-')
-        pic = sbd.execute_script("return ap4.music.pic")
-        logger.info(f'{title} - {author} : {mUrl}')
-        favPage[f'pic:{author}__{title}'] = pic
-        favPage[f'url:{author}__{title}'] = mUrl
-        favPage[f'file:{author}__{title}'] = ''
-        # get redirected QQ url for the music
-        # #this will download the music
-        # sbd.uc_open_with_tab(f'https://hifini.com/{mUrl}')
-        # rsleep(3)
-        # qUrl=sbd.current_url
-
-        # requests.head(mUrl, allow_redirects=True, stream=False) #, headers=hifiniHeaders) #only metadata, not to download
-        r = requestsHeader(mUrl, href)
-        qUrl = None
-        # 401/403 means not logged-in/authorized, but I still want to try if body is possible !
-        if r.status_code in {200, 206, 401, 403}:
-            logger.info(f"header: {r} , mUrl: {mUrl}")
-            qUrl = r.url
-            # if '404' in qUrl:
-            #   #deal with 404 from music.163.com/404
-            #   logging.warning(f'404 found qUrl: {qUrl} , i.e., the 200/206 returned header URL for the song')
-            # else:
-            # if 1==1:
-            favPage[f'url:{author}__{title}'] = qUrl
-            fn = guessSongFilename(qUrl, author=author,
-                                   title=title, dir4songs='songs/')
-            favPage[f'file:{author}__{title}'] = Path(fn).name  # only basename
-            if not Path(fn).exists():
-                logger.info(f"Downloading song `{fn}` from {qUrl}")
-                # , headers=hifiniHeaders) as r:
-                with requestsGet(qUrl, href) as r:
-                    with open(fn, 'wb') as f:
-                        shutil.copyfileobj(r.raw, f)
-            else:
-                logger.info(
-                    f"SONG file {fn} already exists, ignore downloading")
-            if Path(fn).exists():
-                # update link from fav list to real downloaded music filename
-                favdb[fk] = Path(fn).name
-                logger.info(
-                    f"SONG {fn} exists| {favdb[fk]} is MARKED downloaded")
-        else:
-            logger.warning(r)
-        # logging.info(qUrl)
-        logger.info(f'{title} - {author} : {qUrl}')
+        favPage, favdb=getSong(href, fk=fk, favPage=favPage, favdb=favdb)
+        
         rsleep(30, minSeconds=10)
         # break
-    return favPage
+    return favPage, favdb
 
 
 def getFavList(favdb={}):
@@ -475,7 +479,7 @@ def getFavList(favdb={}):
     for i in tqdm(range(1, npage+1)):
         # sbd.switch_to_window(win1)
         try:
-            psongs = getFavSongs(
+            psongs, favdb = getFavSongs(
                 f'https://hifini.com/my-favorites-{i}.htm?orderby=desc', favdb)
             print(psongs)
             favdb.update(psongs)
@@ -488,6 +492,59 @@ def getFavList(favdb={}):
     return favdb
 # ----------------------------------------------------------------------------
 
+def getTopCommentedSongs(favdb={}, minNComments=10000, topPages=10, forumId=1): #1 2 ... -> 华语 日韩 欧美 Remix 纯音乐 异次元 特供 茶馆 百科 充值 站务
+    sbd = sb.driver 
+    topSongsThreads={}
+    bar4pages=tqdm(range(topPages,0,-1))
+    for p in bar4pages:
+        sbd.uc_open_with_tab(f'https://hifini.com/forum-{forumId}-{p}.htm?orderby=lastpid')
+        sbd.wait_for_element_present(".page-item.active",  timeout=30) 
+        nCurPage = sbd.find_element(By.CSS_SELECTOR, ".page-item.active")
+        bar4pages.set_description(f"Current page: {nCurPage.text}")
+        
+        commentsN={}
+        downloadList={}
+        songs=sbd.find_elements(By.CSS_SELECTOR, '.media-body')
+        bar4threads=tqdm(range(len(songs)))
+        for i in bar4threads:
+            s=songs[i]
+            # print(s.text)
+            t=s.find_element(By.CSS_SELECTOR, '.subject').text
+            # print(t)
+            m = re.match(r"(?P<artist>[^《]+)《(?P<song>[^》]+)》(?P<rates>.*)", t)
+            if m is None: 
+                logger.warning(f"thread title pattern not match '张敬轩《绝》[FLAC/MP3-320K]': {t}")
+                continue
+            tt=m.groupdict()            
+            artist=rmTroubleChar(tt['artist'])
+            name=rmTroubleChar(tt['song'])            
+            href=s.find_element(By.CSS_SELECTOR, '.subject > a').get_attribute('href')
+            # print(href)
+            nComments=int(s.find_element(By.CSS_SELECTOR, '.reply').text)
+            bar4threads.set_description(f"{artist}__{name} | {nComments}")
+            
+            if nComments>=minNComments:
+                fk = f'file:{artist}__{name}'            
+                downloadList[fk]=href
+                commentsN[fk]=nComments
+        
+        bar4downloads=tqdm(downloadList)        
+        for fk in bar4downloads:
+            bar4downloads.set_description(f"{fk} : {commentsN[fk]}")
+            if fk in favdb and Path(f'songs/{favdb[fk]}').is_dir():
+                favdb.pop(fk, None)
+            if fk in favdb and Path(f'songs/{favdb[fk]}').is_file() and Path(f'songs/{favdb[fk]}').exists():
+                logger.info(f"{fk} | songs/{favdb[fk]} already downloaded")
+                # mark downloaded solving historical flags due to the difference between fav list and real song name/artist in detailed song page
+                continue
+            href=downloadList[fk]
+            favPage={}            
+            favPage[f'hifini:{fk}'] = href
+            logger.info(f"NEW {fk} < {href}")
+            favPage, favdb=getSong(href, fk=fk, favPage=favPage, favdb=favdb)
+            favdb.update(favPage)
+            rsleep(30, minSeconds=10) #, silent=True)
+    return favdb
 
 def sign4prize():
     sbd = sb.driver
@@ -582,7 +639,9 @@ def main():
                     
                 case 'updateSongs': #scan local songs dir that might contain many songs that were not registered with my local cached favdb
                     favdb = updateLocalFav('./songs', favdb)
-                    
+                case 'top10cn':
+                    favdb = getTopCommentedSongs(favdb, minNComments=10000, topPages=10, forumId=1)
+                    pass
                 case 'rmGoogleCache':
                     k2rm=[k for k in favdb.keys() if 'isGoogleStored' in k]
                     for k in k2rm: favdb.pop(k)
