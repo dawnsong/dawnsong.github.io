@@ -11,6 +11,9 @@ python ./hifini.py sign
 function crawlFav(){
     timeout -k 1m -s SIGKILL 10h python ./hifini.py fav
 }
+function crawlTop10CNpages(){
+    timeout -k 1m -s SIGKILL 10h python ./hifini.py top10cn
+}
 function exportFav(){ #essentially run on every day's morning
     ./findNonSongs.sh -rm  2>&1 |tee nonSongs.log
     #upload/rsync songs to google bucket
@@ -34,11 +37,16 @@ function exportFav(){ #essentially run on every day's morning
 
 #check if today is Sunday, if is then I will download music/songs from my online fav
 #if [[ $(date +%a) == "Sat" && "AM" == $(date +%p) ]]; then
-if [[ $(date +%a) =~ ^(Sat|Thu|Tue)$ && AM == $(date +%p) ]]; then
+if [[ $(date +%a) =~ ^(Sat|Thu|Tue)$ && PM == $(date +%p) ]]; then
     crawlFav   
     exportFav 
 fi
 
-if [[ $(date +%a) =~ ^(Mon|Wed|Fri|Sun)$ ]]; then
+if [[ $(date +%a) =~ ^(Mon|Fri)$ && AM == $(date +%p) ]]; then
+    crawlTop10CNpages
+    exportFav 
+fi
+
+if [[ $(date +%a) =~ ^(Wed|Sun)$ ]]; then
     exportFav
 fi 
