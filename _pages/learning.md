@@ -1,8 +1,8 @@
 ---
 layout: page
-permalink: /teaching/
-title: teaching
-description: Materials for courses you taught. Replace this text with your description.
+permalink: /learning/
+title: learning
+description: Papers/books digest.
 nav: true
 nav_order: 6
 ---
