@@ -15,7 +15,7 @@
       institution: State key laboratory of Cognitive Neuroscience, Beijing Normal University, Beijing, China
       year: 2008
       description:
-        - Resting-state fMRI toolkits (REST, http://resting-fmri.sourceforge.net/ and http://restfmri.net)        
+        - Resting-state fMRI toolkits (REST, http://resting-fmri.sourceforge.net/ and http://restfmri.net)
     - title: Bachelor
       institution: Department of automation, Zhengzhou University, Henan, China
       year: 2003
@@ -36,7 +36,7 @@
         - Designed a set of automatic controls to engage raw steel into fire stove before rolling
         - Help engineers debug and fix a set of problems with the original Italian 16mm auto rolling machines
         - Got a prize on deeply involved into the supervising and building of a new factory, from raw materials to final building, including electrical motor, control units, gear boxes ...
-        
+
     - title: C/C++/Asm/Wasm/Delphi programer
       institution: Various software companier in Zhengzhou and Beijing
       year: 2004 - 2006
@@ -47,7 +47,7 @@
     - title: Research assistant, and assistant researcher
       institution: Institute of Biophysics, Chinese Academy of Science
       year: 2008 - 2012
-      description: 
+      description:
         - A set of tools for automatic rebuilding of 3D virus (including HIV) structure from cryoET and cryoEM
 
     - title: Neuroimaging programmer
@@ -58,7 +58,7 @@
     - title: Associate Professor of Theoretical Physics
       institution: NIDA, NIH
       year: 2013 - 2022
-    
+
     - title: Data analyst, Senior
       institution: GDIT
       year: 2022 - 2025
