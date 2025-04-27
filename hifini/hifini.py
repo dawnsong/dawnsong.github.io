@@ -128,6 +128,24 @@ def summary4favdb(favdb):
     fl=[f for f in favdb if 'file:'==f[:5]]    
     logger.info(f'len(file:)={len(fl)}')
     
+def correctFilenames(ld='./songs'):
+    # from pathlib import Path
+    import os    
+    # for f in os.scandir(ld):
+    for ft, fn, fp in dir2list(ld):
+        if ft == 'dir':
+            continue
+        isMusicSong, mgc = isMusicSongFile(fp)
+        if isMusicSong:
+            cfn=rmTroubleChar(fn)
+            if cfn!=fn: 
+            #     logger.info(f"{cfn} already corrected")
+            # else:
+                logger.warning(f"{Path(fp).with_name(fn)} -> {Path(fp).with_name(cfn)}")
+                os.rename(Path(fp).with_name(fn), Path(fp).with_name(cfn))
+                
+        else:
+            logger.warning(f"Ignore {fp} since it is not audio BUT {mgc}")    
 
 def updateLocalFav(ld='./local', favdb={}):
     # from pathlib import Path
@@ -200,14 +218,17 @@ def isSignedUrlExpired(url):
     traceback.print_exc()
   return expired
 
-def rmTroubleChar(name, troubleCharSet=[':', '(', ')', '/', '\\', ' ', "'", '"', '[', ']', '?'], replace2c='-'):
+def rmTroubleChar00(name, troubleCharSet=[':', '(', ')', '/', '\\', ' ', "'", '"', '[', ']', '?'], replace2c='-'):
   fn=name
   for p in troubleCharSet:  fn = fn.replace(p, replace2c)
   return fn
-
 def rmTroubleChar0(name, allowedCharSet='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-', replace2c=''):  
   regex = f'[^{re.escape(allowedCharSet)}]'
   return re.sub(regex, replace2c, name)
+def rmTroubleChar(name, troubleCharSet=':()/ \t\'"[]?', replace2c='-'):  
+  regex = f'[{re.escape(troubleCharSet)}]'
+  return re.sub(regex, replace2c, name)
+
   
 
 def exportFav(favdb):
@@ -641,7 +662,9 @@ def main():
                     favdb = updateLocalFav('./songs', favdb)
                 case 'top10cn':
                     favdb = getTopCommentedSongs(favdb, minNComments=10000, topPages=10, forumId=1)
-                    pass
+                    
+                case 'correctFilenames':
+                    correctFilenames('./songs')                        
                 case 'rmGoogleCache':
                     k2rm=[k for k in favdb.keys() if 'isGoogleStored' in k]
                     for k in k2rm: favdb.pop(k)
