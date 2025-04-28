@@ -12,4 +12,12 @@ children:
     permalink: /blog/
   - title: publications
     permalink: /publications/?x=100
+  - title: projects
+    permalink: /projects/
+  - title: news
+    permalink: /news/
+  - title: repos
+    permalink: /repositories/
+  - title: people
+    permalink: /people/
 ---

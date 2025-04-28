@@ -1,7 +1,7 @@
 ---
 layout: page
-permalink: /learning/
-title: learning
+permalink: /digest/
+title: Digest
 description: Papers/books digest.
 nav: true
 nav_order: 6
