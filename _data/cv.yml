@@ -2,7 +2,8 @@
   type: map
   contents:
     - name: Full Name
-      value: Xiaowei Song
+      value:
+        Xiaowei Song
         #    - name: Date of Birth
         #value: 1st Jan 1980
     - name: Languages
