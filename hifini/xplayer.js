@@ -86,21 +86,26 @@ ap.audio.addEventListener('play', function(){
   var sArtist=ap.list.audios[ap.list.index].artist;
   console.log('Started playing: ' + sName + ' | ' + sArtist); 
 
-  var btnNextPixabay=$('.pixabay_widget_nav');
-  if(btnNextPixabay.length){
-    var hiddenTime = btnNextPixabay[0].querySelector('time');
+  var navPanel=$('#xplayer');
+  if(navPanel.length){
+    var hiddenTime = navPanel[0].querySelector('time');
     var minutesDiff=1; //refresh images >=1 minute
     if(!hiddenTime){
       var timeElement = document.createElement('time');
       timeElement.setAttribute('datetime', new Date().toISOString());
       timeElement.style.display = 'none';
-      btnNextPixabay[0].appendChild(timeElement);
+      navPanel[0].appendChild(timeElement);
+      hiddenTime=timeElement;
     }else{
       var oTimeValue = new Date(hiddenTime.getAttribute('datetime')).getTime();
       var cTimeValue= new Date().getTime();
       minutesDiff = (cTimeValue-oTimeValue)/(60*1000);
     }
-    if(minutesDiff>=1) btnNextPixabay.click()
+    if(minutesDiff>=1){
+      btnNextPixabay=$('.pixabay_widget_next')[0];
+      btnNextPixabay.click();
+      hiddenTime.setAttribute('datetime', new Date().toISOString());
+    } 
     
     console.log("minutes diff: ", minutesDiff)
   }  
