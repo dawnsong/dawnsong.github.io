@@ -78,3 +78,16 @@ var ap = new APlayer({
 
 //   console.log(ap.audio.buffered)
 // });
+
+
+//change pixabay images once a song switched
+ap.audio.addEventListener('play', function(){ 
+  var sName  =ap.list.audios[ap.list.index].name;
+  var sArtist=ap.list.audios[ap.list.index].artist;
+  console.log('Started playing: ' + sName + ' | ' + sArtist); 
+
+  var btnNextPixabay=$('.pixabay_widget_next');
+  if(btnNextPixabay.length){
+    btnNextPixabay.click()
+  }  
+});

@@ -44,7 +44,12 @@
       'API key missing: Your Pixabay API key must be defined as "key" in the pixabayWidget configuration array.'
     );
     return false;
+  }else{
+//   var str = JSON.stringify(o, null, 4)
+//   console.log(str)
+    // console.log("o: ", o)
   }
+
 
   styles = (
     "** .noselect { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }" +
@@ -246,7 +251,7 @@
         nav += '<div class="noselect ' + o.class_name + '_nav">';
         if (br)
           nav +=
-            '<div class="branding">Powered by <a href="https://pixabay.com/" target="' +
+            '<div class="branding">From <a href="https://pixabay.com/" target="' +
             target +
             '">Pixabay</a></div>';
         if (is_paginated) {
