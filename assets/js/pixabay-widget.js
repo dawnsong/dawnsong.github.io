@@ -44,12 +44,11 @@
       'API key missing: Your Pixabay API key must be defined as "key" in the pixabayWidget configuration array.'
     );
     return false;
-  }else{
-//   var str = JSON.stringify(o, null, 4)
-//   console.log(str)
+  } else {
+    //   var str = JSON.stringify(o, null, 4)
+    //   console.log(str)
     // console.log("o: ", o)
   }
-
 
   styles = (
     "** .noselect { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }" +
