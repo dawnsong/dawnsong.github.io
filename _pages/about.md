@@ -1,6 +1,6 @@
 ---
 layout: about
-title: about
+title: About
 permalink: /
 subtitle: <a href='#'>Worked for:</a> GDIT, NIDA/NIH, Northwestern University | UMBC, IBP/CAS, BNU, Tegang/Shougang
 
