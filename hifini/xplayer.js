@@ -102,8 +102,10 @@ ap.audio.addEventListener('play', function(){
       minutesDiff = (cTimeValue-oTimeValue)/(60*1000);
     }
     if(minutesDiff>=1){
-      btnNextPixabay=$('.pixabay_widget_next')[0];
-      btnNextPixabay.click();
+      // btnNextPixabay=$('.pixabay_widget_next')[0]; //page+1
+      // btnNextPixabay.click();
+      btnNextRandomPixabay=$('#page4pixabay')[0];
+      btnNextRandomPixabay.click();
       hiddenTime.setAttribute('datetime', new Date().toISOString());
     } 
     

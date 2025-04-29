@@ -318,6 +318,7 @@
       var next = 0;
       if (e.target.className == o.class_name + "_prev") next = -1;
       else if (e.target.className == o.class_name + "_next") next = 1;
+      else if (e.target.id == "page4pixabay") next = Math.floor((Math.random()-0.5) * (10 - 1 + 1) + 1);
       if (next) {
         var n = closest(e.target, "." + o.class_name),
           p = (parseInt(n.getAttribute("data-page")) || 1) + next;
