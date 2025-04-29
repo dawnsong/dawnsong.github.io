@@ -35,4 +35,4 @@ Link to your social media connections, too. This theme is set up to use [Font Aw
 -->
 <div class="pixabay_widget" data-page="1" data-per-page="5" data-order="latest" data-image-type="all" data-row-height="180" data-max-rows="1" data-truncate="false" data-branding="true" data-target='_blank'></div>
 <script>var pixabayWidget = { 'key': '49881616-aae7f8e313c74699f065d70a8' }</script>
-<script src="/assets/js/pixabay-widget.js" async defer></script>
+<script src="/assets/js/pixabay-widget.js" defer></script>

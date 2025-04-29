@@ -110,3 +110,10 @@ ap.audio.addEventListener('play', function(){
     console.log("minutes diff: ", minutesDiff)
   }  
 });
+
+// if in about page, find and move images on top of the audio player
+var footerDiv=$('#xplayer').parent();
+var pixabay=$('.pixabay_widget');
+if(pixabay.length){
+  pixabay.prependTo(footerDiv)
+}
