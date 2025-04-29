@@ -258,6 +258,7 @@
             nav +=
               '<b class="' + o.class_name + '_prev">' + prev + "&nbsp;</b>";
           else nav += "<span>" + prev + "&nbsp;</span>";
+          nav += "<span id='page4pixabay'>&nbsp;"+ page +"&nbsp;</span>";
           if (page * per_page < data.totalHits)
             nav +=
               '<b class="' + o.class_name + '_next">&nbsp; ' + next + "</b>";
