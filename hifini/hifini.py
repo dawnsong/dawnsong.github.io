@@ -375,6 +375,13 @@ def guessSongFilename(qUrl, author='', title='', dir4songs='songs/'):
     return "songs/"+fn
   
 def getSong(href, fk=r'file:{artist}__{name}', favPage={}, favdb={}):
+    TOTAL_TIMEOUT = 5*60 #5 minutes
+    start = time.time()
+    def trace_function(frame, event, arg):
+        if time.time() - start > TOTAL_TIMEOUT:
+            raise Exception(f'Timed ({TOTAL_TIMEOUT}s) out!')
+        return trace_function
+    #---------------------------------
     sbd = sb.driver
     sbd.uc_open_with_tab(href)
     # rsleep(3)
@@ -419,9 +426,15 @@ def getSong(href, fk=r'file:{artist}__{name}', favPage={}, favdb={}):
         if not Path(fn).exists():
             logger.info(f"Downloading song `{fn}` from {qUrl}")
             # , headers=hifiniHeaders) as r:
-            with requestsGet(qUrl, href) as r:
-                with open(fn, 'wb') as f:
-                    shutil.copyfileobj(r.raw, f)
+            sys.settrace(trace_function)
+            try:
+                with requestsGet(qUrl, href) as r:
+                    with open(fn, 'wb') as f:
+                        shutil.copyfileobj(r.raw, f)
+            except Exception as e:
+                logger.exception(e)
+            finally:
+                sys.settrace(None)
         else:
             logger.info(
                 f"SONG file {fn} already exists, ignore downloading")

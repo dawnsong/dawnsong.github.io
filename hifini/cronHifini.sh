@@ -6,6 +6,7 @@ cd /home/dawnsong/dawn/dawnsong.github.io/hifini
 #conda activate webot
 
 exec > >(tee hifini.log) 2>&1
+echo $PATH |tr -s ':' '\n'
 python ./hifini.py sign
 
 function crawlFav(){
