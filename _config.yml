@@ -10,7 +10,7 @@ contact_note: >
   Collaboration email: <img src="/assets/dawnwei.song.svg" style="line-height: 1.2; height: 1.2em;" alt="dawnwei.song AT/"/> @foxmail.com
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
   Research on robust machine learning methods with Big data on healthcare, MRI and cryoET/cryoEM
-footer_text: >  
+footer_text: >
   <div id="xplayer" style="text-align: left;"></div>
   <script type="text/javascript" src="https://storage.googleapis.com/xpub/js/playlist.js" crossorigin="anonymous"></script>
   <script type="text/javascript" src="/hifini/xplayer.js"  defer></script>
