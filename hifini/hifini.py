@@ -425,9 +425,10 @@ def getSong(href, fk=r'file:{artist}__{name}', favPage={}, favdb={}):
         favPage[f'file:{author}__{title}'] = Path(fn).name  # only basename
         if not Path(fn).exists():
             logger.info(f"Downloading song `{fn}` from {qUrl}")
-            # , headers=hifiniHeaders) as r:
+            # , headers=hifiniHeaders) as r:            
             sys.settrace(trace_function)
             try:
+                start = time.time()
                 with requestsGet(qUrl, href) as r:
                     with open(fn, 'wb') as f:
                         shutil.copyfileobj(r.raw, f)
