@@ -109,7 +109,8 @@ ap.audio.addEventListener('play', function(){
       hiddenTime.setAttribute('datetime', new Date().toISOString());
     } 
     
-    console.log("minutes diff: ", minutesDiff)
+    // console.log("minutes diff: ", minutesDiff)
+    document.title=sArtist + ' | ' + sName;
   }  
 });
 
