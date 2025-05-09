@@ -12,7 +12,7 @@ description: > # the ">" symbol means to ignore newlines until "footer_text:"
   Research on robust machine learning methods with Big data on healthcare, MRI and cryoET/cryoEM
 footer_text: >
   <div id="xplayer" style="text-align: left;"></div>
-  
+
   <script type="text/javascript" src="/hifini/xplayer.js"  defer></script>
   Powered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> | <a href="https://github.com/alshedivat/al-folio">al-folio</a>.
 keywords: robust, big data, MRI, cryoET, cryoEM, healthcare # add your own keywords or leave empty
