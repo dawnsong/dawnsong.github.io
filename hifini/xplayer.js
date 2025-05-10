@@ -30,18 +30,15 @@ function getParam(name, defaultValue) {
 
   return value !== null ? value : defaultValue;
 }
-const nSongs=getParam('x', 10);
+
+var songIdx=randomInt(0, 280);
+var jsonUrl=`https://storage.googleapis.com/xpub/playlists/${String(songIdx).padStart(8, '0')}.json`;
+var nSongs=getParam('x', 10);
 if(nSongs>10){
-  const songIdx=0;
-  const jsonUrl=`https://storage.googleapis.com/xpub/playlists/all.json`;
-}else{
-  const songIdx=randomInt(0, 280);
-  const jsonUrl=`https://storage.googleapis.com/xpub/playlists/${String(songIdx).padStart(8, '0')}.json`;
+  songIdx=0;
+  jsonUrl=`https://storage.googleapis.com/xpub/playlists/all.json`;
 }
-
-
 console.log(jsonUrl);
-
 
 function getRandomSubarray(arr, size) {
   if(size>arr.length) size=arr.length;
