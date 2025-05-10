@@ -24,9 +24,18 @@ async function json2array(url4gJson){
     throw error;
   }
 }
-const songIdx=randomInt(0, 28);
-const jsonUrl=`https://storage.googleapis.com/xpub/playlists/${String(songIdx).padStart(8, '0')}.json`;
+const nSongs=getParam('x', 10);
+if(nSongs>10){
+  const songIdx=0;
+  const jsonUrl=`https://storage.googleapis.com/xpub/playlists/all.json`;
+}else{
+  const songIdx=randomInt(0, 280);
+  const jsonUrl=`https://storage.googleapis.com/xpub/playlists/${String(songIdx).padStart(8, '0')}.json`;
+}
+
+
 console.log(jsonUrl);
+
 
 function getRandomSubarray(arr, size) {
   if(size>arr.length) size=arr.length;
@@ -80,41 +89,41 @@ json2array(jsonUrl).then(songs => {
       mutex: true,
       theme:  '#ad7a86', // '#b7daff',  //'#0a0a0f',//
       listFolded: true,
-      audio: getRandomSubarray(songs, getParam('x', 10))
+      audio: getRandomSubarray(songs, nSongs)
     });
     //change pixabay images once a song switched
-  ap.audio.addEventListener('play', function(){ 
-    var sName  =ap.list.audios[ap.list.index].name;
-    var sArtist=ap.list.audios[ap.list.index].artist;
-    console.log('Started playing: ' + sName + ' | ' + sArtist); 
+    ap.audio.addEventListener('play', function(){ 
+      var sName  =ap.list.audios[ap.list.index].name;
+      var sArtist=ap.list.audios[ap.list.index].artist;
+      console.log('Started playing: ' + sName + ' | ' + sArtist); 
 
-    var navPanel=$('#xplayer');
-    if(navPanel.length){
-      var hiddenTime = navPanel[0].querySelector('time');
-      var minutesDiff=1; //refresh images >=1 minute
-      if(!hiddenTime){
-        var timeElement = document.createElement('time');
-        timeElement.setAttribute('datetime', new Date().toISOString());
-        timeElement.style.display = 'none';
-        navPanel[0].appendChild(timeElement);
-        hiddenTime=timeElement;
-      }else{
-        var oTimeValue = new Date(hiddenTime.getAttribute('datetime')).getTime();
-        var cTimeValue= new Date().getTime();
-        minutesDiff = (cTimeValue-oTimeValue)/(60*1000);
-      }
-      if(minutesDiff>=1){
-        // btnNextPixabay=$('.pixabay_widget_next')[0]; //page+1
-        // btnNextPixabay.click();
-        btnNextRandomPixabay=$('#page4pixabay')[0];
-        btnNextRandomPixabay.click();
-        hiddenTime.setAttribute('datetime', new Date().toISOString());
-      } 
-      
-      // console.log("minutes diff: ", minutesDiff)
-      document.title=sArtist + ' | ' + sName;
-    }  
-  });
+      var navPanel=$('#xplayer');
+      if(navPanel.length){
+        var hiddenTime = navPanel[0].querySelector('time');
+        var minutesDiff=1; //refresh images >=1 minute
+        if(!hiddenTime){
+          var timeElement = document.createElement('time');
+          timeElement.setAttribute('datetime', new Date().toISOString());
+          timeElement.style.display = 'none';
+          navPanel[0].appendChild(timeElement);
+          hiddenTime=timeElement;
+        }else{
+          var oTimeValue = new Date(hiddenTime.getAttribute('datetime')).getTime();
+          var cTimeValue= new Date().getTime();
+          minutesDiff = (cTimeValue-oTimeValue)/(60*1000);
+        }
+        if(minutesDiff>=1){
+          // btnNextPixabay=$('.pixabay_widget_next')[0]; //page+1
+          // btnNextPixabay.click();
+          btnNextRandomPixabay=$('#page4pixabay')[0];
+          btnNextRandomPixabay.click();
+          hiddenTime.setAttribute('datetime', new Date().toISOString());
+        } 
+        
+        // console.log("minutes diff: ", minutesDiff)
+        document.title=sArtist + ' | ' + sName;
+      }  
+    });
   }  
 });
 
@@ -141,8 +150,8 @@ json2array(jsonUrl).then(songs => {
 
 
 // if in about page, find and move images on top of the audio player
-var footerDiv=$('#xplayer').parent();
-var pixabay=$('.pixabay_widget');
+const footerDiv=$('#xplayer').parent();
+const pixabay=$('.pixabay_widget');
 if(pixabay.length){
   pixabay.prependTo(footerDiv)
 }
