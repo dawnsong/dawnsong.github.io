@@ -24,6 +24,12 @@ async function json2array(url4gJson){
     throw error;
   }
 }
+function getParam(name, defaultValue) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const value = urlParams.get(name);
+
+  return value !== null ? value : defaultValue;
+}
 const nSongs=getParam('x', 10);
 if(nSongs>10){
   const songIdx=0;
@@ -64,12 +70,7 @@ function moveDivToUl() {
   //to debug
 }
 // moveDivToUl();
-function getParam(name, defaultValue) {
-  const urlParams = new URLSearchParams(window.location.search);
-  const value = urlParams.get(name);
 
-  return value !== null ? value : defaultValue;
-}
 
 json2array(jsonUrl).then(songs => {
   if(songs){
