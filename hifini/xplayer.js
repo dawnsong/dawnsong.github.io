@@ -31,7 +31,7 @@ function getParam(name, defaultValue) {
   return value !== null ? value : defaultValue;
 }
 
-var songIdx=randomInt(0, 280);
+var songIdx=randomInt(0, max10);
 var jsonUrl=`https://storage.googleapis.com/xpub/playlists/${String(songIdx).padStart(8, '0')}.json`;
 var nSongs=getParam('x', 10);
 if(nSongs>10){
