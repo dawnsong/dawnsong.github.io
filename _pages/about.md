@@ -33,6 +33,6 @@ Put your address / P.O. box / other info right below your picture. You can also 
 
 Link to your social media connections, too. This theme is set up to use [Font Awesome icons](https://fontawesome.com/) and [Academicons](https://jpswalsh.github.io/academicons/), like the ones below. Add your Facebook, Twitter, LinkedIn, Google Scholar, or just disable all of them.
 -->
-<div class="pixabay_widget" data-page="1" data-per-page="5" data-order="latest" data-image-type="all" data-row-height="180" data-max-rows="1" data-truncate="false" data-branding="true" data-target='_blank'></div>
+<div class="pixabay_widget" data-page="1" data-per-page="3" data-order="latest" data-image-type="photo" data-row-height="180" data-max-rows="1" data-truncate="false" data-branding="true" data-target='_blank' data-editors-choice="true"></div>
 <script>var pixabayWidget = { 'key': '49881616-aae7f8e313c74699f065d70a8' }</script>
 <script src="/assets/js/pixabay-widget.js" defer></script>
