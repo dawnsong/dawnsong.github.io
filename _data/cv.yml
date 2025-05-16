@@ -14,12 +14,12 @@
   contents:
     - title: Master
       institution: State key laboratory of Cognitive Neuroscience, Beijing Normal University, Beijing, China
-      year: 2008
+      year: 2006 - 2008
       description:
         - Resting-state fMRI toolkits (REST, http://resting-fmri.sourceforge.net/ and http://restfmri.net)
     - title: Bachelor
       institution: Department of automation, Zhengzhou University, Henan, China
-      year: 2003
+      year: 1999 - 2003
       description:
         - Mechanical design and drawing for a whole year 1999~2000.
         - Analogic and Digital electronics
@@ -74,16 +74,19 @@
 - title: Academic Interests
   type: nested_list
   contents:
-    - title: Topic 1.
+    - title: Robust.
       items:
-        - Description 1.
-        - Description 2.
-    - title: Topic 2.
-      items:
-        - Description 1.
-        - Description 2.
+        - Statistics.
+        - Control theory.
+        - Linear/Nonlinear methods.
+    - title: Simplest and most efficient Algorithms.
+      items:        
+        - PCA.
+        - ICA.
+        - Dictionary learning.
+        
 
 - title: Other Interests
   type: list
   contents:
-    - <u>Hobbies:</u> Hobby 1, Hobby 2, etc.
+    - <u>Hobbies:</u> building house, chopping fell trees, etc.
