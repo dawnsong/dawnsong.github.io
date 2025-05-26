@@ -80,11 +80,10 @@
         - Control theory.
         - Linear/Nonlinear methods.
     - title: Simplest and most efficient Algorithms.
-      items:        
+      items:
         - PCA.
         - ICA.
         - Dictionary learning.
-        
 
 - title: Other Interests
   type: list
