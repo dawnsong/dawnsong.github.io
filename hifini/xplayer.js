@@ -97,6 +97,7 @@ json2array(jsonUrl).then(songs => {
 
       var navPanel=$('#xplayer');
       if(navPanel.length){
+        document.title=sArtist + ' | ' + sName;
         var hiddenTime = navPanel[0].querySelector('time');
         var minutesDiff=1; //refresh images >=1 minute
         if(!hiddenTime){
@@ -113,13 +114,13 @@ json2array(jsonUrl).then(songs => {
         if(minutesDiff>=1){
           // btnNextPixabay=$('.pixabay_widget_next')[0]; //page+1
           // btnNextPixabay.click();
-          btnNextRandomPixabay=$('#page4pixabay')[0];
-          btnNextRandomPixabay.click();
+          var btnNextRandomPixabay=$('#page4pixabay')[0];
+          if(Object.keys(btnNextRandomPixabay).length > 0 && typeof btnNextRandomPixabay.click === 'function'){
+            btnNextRandomPixabay.click();
+          }          
           hiddenTime.setAttribute('datetime', new Date().toISOString());
-        } 
-        
-        // console.log("minutes diff: ", minutesDiff)
-        document.title=sArtist + ' | ' + sName;
+        }         
+        // console.log("minutes diff: ", minutesDiff)        
       }  
     });
   }  
