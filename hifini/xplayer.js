@@ -88,7 +88,7 @@ json2array(jsonUrl).then(songs => {
       loop: 'all',
       order: 'random',
       volume: 1,
-      preload: 'none', //'auto',
+      preload: 'auto', //'auto', 'none'
       showlrc: false, //
       lrctype:3,
       mutex: true,
