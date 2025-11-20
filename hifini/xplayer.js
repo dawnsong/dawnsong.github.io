@@ -68,6 +68,13 @@ function moveDivToUl() {
 }
 // moveDivToUl();
 
+function safeObjClick(aObj){
+  if(aObj !== null && aObj !== undefined){
+    if(Object.keys(aObj).length > 0 && typeof aObj.click === 'function'){
+      aObj.click();
+  }
+  }
+}
 
 json2array(jsonUrl).then(songs => {
   if(songs){
@@ -115,9 +122,7 @@ json2array(jsonUrl).then(songs => {
           // btnNextPixabay=$('.pixabay_widget_next')[0]; //page+1
           // btnNextPixabay.click();
           var btnNextRandomPixabay=$('#page4pixabay')[0];
-          if(Object.keys(btnNextRandomPixabay).length > 0 && typeof btnNextRandomPixabay.click === 'function'){
-            btnNextRandomPixabay.click();
-          }          
+          safeObjClick(btnNextRandomPixabay)          
           hiddenTime.setAttribute('datetime', new Date().toISOString());
         }         
         // console.log("minutes diff: ", minutesDiff)        
