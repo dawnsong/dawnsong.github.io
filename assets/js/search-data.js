@@ -30,12 +30,12 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/cv/";
           },
-        },{id: "nav-digest",
-          title: "Digest",
+        },{id: "nav-digests",
+          title: "Digests",
           description: "Papers/books digest.",
           section: "Navigation",
           handler: () => {
-            window.location.href = "/digest/";
+            window.location.href = "/digests/";
           },
         },{id: "dropdown-bookshelf",
               title: "bookshelf",
@@ -432,6 +432,11 @@ ninja.data = [{
           description: "",
           section: "Books",handler: () => {
               window.location.href = "/books/the_godfather/";
+            },},{id: "digests-shapley-based-explanation-for-time-series-models",
+          title: 'Shapley-based explanation for time-series models',
+          description: "Model explanation for time-series with shapley",
+          section: "Digests",handler: () => {
+              window.location.href = "/digests/ShaTS/";
             },},{id: "news-a-simple-inline-announcement",
           title: 'A simple inline announcement.',
           description: "",
