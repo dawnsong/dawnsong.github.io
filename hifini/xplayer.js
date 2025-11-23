@@ -112,23 +112,23 @@ async function getStorageQuotaText() {
             console.error("Error estimating storage:", error);
             // Return default values or re-throw the error if appropriate
             return {
-                totalQuota: 'N/A',
-                usedQuota: 'N/A',
-                freeQuota: 'N/A'
+                totalQuota: 'NA',
+                usedQuota: 'NA',
+                freeQuota: 'NA'
             };
         }
     } else {
         console.warn("navigator.storage.estimate is not supported in this browser or context.");
         // Return default values or throw an error indicating lack of support
         return {
-            totalQuota: 'N/A',
-            usedQuota: 'N/A',
-            freeQuota: 'N/A'
+            totalQuota: 'NA',
+            usedQuota: 'NA',
+            freeQuota: 'NA'
         };
     }
 }
-function log4quota(){
-  const { totalQuota, usedQuota, freeQuota } = getStorageQuotaText();
+async function log4quota(){
+  const { totalQuota, usedQuota, freeQuota } = await getStorageQuotaText();
   // console.log("totalQuota: "+totalQuota);
   document.getElementById('idbQuotaTotal').textContent = totalQuota;
   // console.log("usedQuota: "+usedQuota);
@@ -171,9 +171,7 @@ const initIndexedDb = (dbName, stores) => {
 // Attach IndexedDB - creation to the window.onload - event
 window.addEventListener('load', async () => {	
   idb4songs = await initIndexedDb('xdb4songs', [{ name: storeName, keyPath: storeKey }]);
-  //https://blog.q-bit.me/how-to-use-indexeddb-to-store-images-and-other-files-in-your-browser/      
-  await log4quota();
-  
+  //https://blog.q-bit.me/how-to-use-indexeddb-to-store-images-and-other-files-in-your-browser/          
   // renderAvailableImagesFromDb();    
 	  
   //make player
@@ -258,6 +256,8 @@ window.addEventListener('load', async () => {
   if(pixabay.length){
     pixabay.prependTo(footerDiv)
   }
+
+  await log4quota();
 })
 
 
