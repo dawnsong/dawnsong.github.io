@@ -26,3 +26,4 @@ latest_logs
 __*cache*
 xgcloud.json
 *hifini*
+.ssl/*.key
