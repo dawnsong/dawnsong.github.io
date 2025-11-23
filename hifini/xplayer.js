@@ -1,3 +1,5 @@
+'use strict';
+
 // var songs=[
 //   {
 //     name: '心语',
@@ -75,87 +77,187 @@ function safeObjClick(aObj){
   }
   }
 }
+////////////////////////////////////////////////////////////////////////////////
+const storeName = 'xLocalIDB';
+const storeKey = 'fileName';
+const dbVersion = 1;
+let idb4songs = null;
+// Methods for Storage quota
+/**
+ * @desc Gets the current storage quota
+ * @returns {Promise<{totalQuota: string, usedQuota: string, freeQuota: string}>}
+ */
+// Util functions
+const formatAsByteString = (bytes) => {
+	const oneGigabyte = 1024 * 1024 * 1024;
+	const oneMegabyte = 1024 * 1024;
+	const oneKilobyte = 1024;
 
-json2array(jsonUrl).then(songs => {
-  if(songs){
-    console.log('Parsed songs: ', songs);
-    var ap = new APlayer({
-      element: document.getElementById('xplayer'),
-      narrow: false,
-      //fixed: true, //<!--吸底模式 -->  
-      mini: false, 
-      autoplay: false, // Google Chrome disabled autoplay and require user's response before auto playback
-      loop: 'all',
-      order: 'random',
-      volume: 1,
-      preload: 'auto', //'auto', 'none'
-      showlrc: false, //
-      lrctype:3,
-      mutex: true,
-      theme:  '#ad7a86', // '#b7daff',  //'#0a0a0f',//
-      listFolded: true,
-      audio: getRandomSubarray(songs, nSongs)
-    });
-    //change pixabay images once a song switched
-    ap.audio.addEventListener('play', function(){ 
-      var sName  =ap.list.audios[ap.list.index].name;
-      var sArtist=ap.list.audios[ap.list.index].artist;
-      console.log('Started playing: ' + sName + ' | ' + sArtist); 
-
-      var navPanel=$('#xplayer');
-      if(navPanel.length){
-        document.title=sArtist + ' | ' + sName;
-        var hiddenTime = navPanel[0].querySelector('time');
-        var minutesDiff=1; //refresh images >=1 minute
-        if(!hiddenTime){
-          var timeElement = document.createElement('time');
-          timeElement.setAttribute('datetime', new Date().toISOString());
-          timeElement.style.display = 'none';
-          navPanel[0].appendChild(timeElement);
-          hiddenTime=timeElement;
-        }else{
-          var oTimeValue = new Date(hiddenTime.getAttribute('datetime')).getTime();
-          var cTimeValue= new Date().getTime();
-          minutesDiff = (cTimeValue-oTimeValue)/(60*1000);
-        }
-        if(minutesDiff>=1){
-          // btnNextPixabay=$('.pixabay_widget_next')[0]; //page+1
-          // btnNextPixabay.click();
-          var btnNextRandomPixabay=$('#page4pixabay')[0];
-          safeObjClick(btnNextRandomPixabay)          
-          hiddenTime.setAttribute('datetime', new Date().toISOString());
-        }         
-        // console.log("minutes diff: ", minutesDiff)        
-      }  
-    });
-  }  
-});
-
-
-//save decoded hifini URLs (i.e., qq music url) to local cookies
-// ap.on('play', function () {
-//   console.log('Start playing song: ' + ap.list.index );
-//   console.log('URL: ' + ap.list.audios[ap.list.index].url);
-//   console.log(ap.list.audios[ap.list.index]);
-//   //console.log(null==ap.audios); //true
-//   console.log("src: "+ ap.audio.src)
-//   console.log(ap.audio)  
-// });
-
-// ap.on('loadeddata', function () {
-//   console.log('loadeddata of song: ' + ap.list.index );
-//   console.log('URL: ' + ap.list.audios[ap.list.index].url);
-//   console.log(ap.list.audios[ap.list.index]);
-//   //console.log(null==ap.audios); //true
-//   console.log("src: "+ ap.audio.src)
-
-//   console.log(ap.audio.buffered)
-// });
-
-
-// if in about page, find and move images on top of the audio player
-const footerDiv=$('#xplayer').parent();
-const pixabay=$('.pixabay_widget');
-if(pixabay.length){
-  pixabay.prependTo(footerDiv)
+	return bytes > oneGigabyte ? `${(bytes / oneGigabyte).toFixed(2)} GB` : bytes > oneMegabyte ? `${(bytes / oneMegabyte).toFixed(2)} MB` : `${(bytes / oneKilobyte).toFixed(2)}KB`;
 }
+async function getStorageQuotaText() {
+    // Check if navigator.storage and navigator.storage.estimate are available
+    if (navigator.storage && typeof navigator.storage.estimate === 'function') {
+        try {
+            const t = await navigator.storage.estimate();
+            const e = +(t.quota || 0);
+            const a = +(t.usage || 0);
+            const o = e - a;
+            return {
+                totalQuota: formatAsByteString(e),
+                usedQuota: formatAsByteString(a),
+                freeQuota: formatAsByteString(o)
+            };
+        } catch (error) {
+            console.error("Error estimating storage:", error);
+            // Return default values or re-throw the error if appropriate
+            return {
+                totalQuota: 'N/A',
+                usedQuota: 'N/A',
+                freeQuota: 'N/A'
+            };
+        }
+    } else {
+        console.warn("navigator.storage.estimate is not supported in this browser or context.");
+        // Return default values or throw an error indicating lack of support
+        return {
+            totalQuota: 'N/A',
+            usedQuota: 'N/A',
+            freeQuota: 'N/A'
+        };
+    }
+}
+function log4quota(){
+  const { totalQuota, usedQuota, freeQuota } = getStorageQuotaText();
+  // console.log("totalQuota: "+totalQuota);
+  document.getElementById('idbQuotaTotal').textContent = totalQuota;
+  // console.log("usedQuota: "+usedQuota);
+  document.getElementById('idbQuotaUsed').textContent = usedQuota;
+  console.log("freeQuota: "+freeQuota);
+}
+
+
+
+//manage local cache DB for songs
+function updateSongsURL2local(songs){  
+  songs.forEach(function(song) {
+    console.log(song);
+  });  
+}
+
+const initIndexedDb = (dbName, stores) => {
+	return new Promise((resolve, reject) => {
+		const req = indexedDB.open(dbName, 1);
+		req.onerror = (event) => {
+      console.error("indexedDB error: " + event.target.errorCode);
+			reject(event.target.error);
+		};
+		req.onsuccess = (event) => {
+      let db = event.target.result;
+      console.log("indexedDB opened successfully");
+      // Now you can work with the 'db' object to perform operations
+			resolve(event.target.result);      
+		};
+		req.onupgradeneeded = (event) => {
+			stores.forEach((store) => {
+				const objectStore = event.target.result.createObjectStore(store.name, {
+					keyPath: store.keyPath,
+				});
+				objectStore.createIndex(store.keyPath, store.keyPath, { unique: true });
+			});
+		};
+	});
+};
+// Attach IndexedDB - creation to the window.onload - event
+window.addEventListener('load', async () => {	
+  idb4songs = await initIndexedDb('xdb4songs', [{ name: storeName, keyPath: storeKey }]);
+  //https://blog.q-bit.me/how-to-use-indexeddb-to-store-images-and-other-files-in-your-browser/      
+  await log4quota();
+  
+  // renderAvailableImagesFromDb();    
+	  
+  //make player
+  json2array(jsonUrl).then(songs => {
+    if(songs){      
+      // console.log('Parsed songs: ', songs);
+      updateSongsURL2local(songs);
+      console.log('Cached songs: ', songs);
+      //----------------------------------
+      var ap = new APlayer({
+        element: document.getElementById('xplayer'),
+        narrow: false,
+        //fixed: true, //<!--吸底模式 -->  
+        mini: false, 
+        autoplay: false, // Google Chrome disabled autoplay and require user's response before auto playback
+        loop: 'all',
+        order: 'random',
+        volume: 1,
+        preload: 'auto', //'auto', 'none'
+        showlrc: false, //
+        lrctype:3,
+        mutex: true,
+        theme:  '#ad7a86', // '#b7daff',  //'#0a0a0f',//
+        listFolded: true,
+        audio: getRandomSubarray(songs, nSongs)
+      });
+      //change pixabay images once a song switched
+      ap.audio.addEventListener('play', function(){ 
+        var sName  =ap.list.audios[ap.list.index].name;
+        var sArtist=ap.list.audios[ap.list.index].artist;
+        console.log('Started playing: ' + sName + ' | ' + sArtist); 
+
+        var navPanel=$('#xplayer');
+        if(navPanel.length){
+          document.title=sArtist + ' | ' + sName;
+          var hiddenTime = navPanel[0].querySelector('time');
+          var minutesDiff=1; //refresh images >=1 minute
+          if(!hiddenTime){
+            var timeElement = document.createElement('time');
+            timeElement.setAttribute('datetime', new Date().toISOString());
+            timeElement.style.display = 'none';
+            navPanel[0].appendChild(timeElement);
+            hiddenTime=timeElement;
+          }else{
+            var oTimeValue = new Date(hiddenTime.getAttribute('datetime')).getTime();
+            var cTimeValue= new Date().getTime();
+            minutesDiff = (cTimeValue-oTimeValue)/(60*1000);
+          }
+          if(minutesDiff>=1){ //at least 1 minute          
+            var btnNextRandomPixabay=$('#page4pixabay')[0];
+            safeObjClick(btnNextRandomPixabay)          
+            hiddenTime.setAttribute('datetime', new Date().toISOString());
+          }         
+          // console.log("minutes diff: ", minutesDiff)        
+        }  
+      });
+      ap.on('loadeddata', function () {
+        console.log('loadeddata of song: ' + ap.list.index );
+        console.log('URL: ' + ap.list.audios[ap.list.index].url);
+        console.log(ap.list.audios[ap.list.index]);
+        //console.log(null==ap.audios); //true
+        console.log("src: "+ ap.audio.src)
+
+        console.log(ap.audio.buffered)
+
+      });
+      //save decoded hifini URLs (i.e., qq music url) to local cookies
+      // ap.on('play', function () {
+      //   console.log('Start playing song: ' + ap.list.index );        
+      //   console.log('URL: ' + ap.list.audios[ap.list.index].url);
+      //   console.log(ap.list.audios[ap.list.index]);
+      //   //console.log(null==ap.audios); //true
+      //   console.log("src: "+ ap.audio.src)
+      //   console.log(ap.audio)  
+      // });
+    }  
+  });
+
+  // if in about page, find and move images on top of the audio player
+  const footerDiv=$('#xplayer').parent();
+  const pixabay=$('.pixabay_widget');
+  if(pixabay.length){
+    pixabay.prependTo(footerDiv)
+  }
+})
+
+
