@@ -238,7 +238,6 @@ sass:
 # -----------------------------------------------------------------------------
 # Jekyll Minifier
 # -----------------------------------------------------------------------------
-
 jekyll-minifier:
   compress_javascript: false # set to false since we are using terser as the js minifier
   exclude: ["robots.txt", "assets/js/search/*.js"]
@@ -246,15 +245,13 @@ jekyll-minifier:
 # -----------------------------------------------------------------------------
 # Terser
 # -----------------------------------------------------------------------------
-
 terser:
   compress:
-    drop_console: true
+    drop_console: false
 
 # -----------------------------------------------------------------------------
 # Jekyll Archives
 # -----------------------------------------------------------------------------
-
 jekyll-archives:
   posts:
     enabled: [year, tags, categories] # enables year, tag and category archives (remove if you need to disable one of them).
@@ -271,7 +268,6 @@ display_categories: ["external-services"] # these categories will be displayed o
 # -----------------------------------------------------------------------------
 # Jekyll Scholar
 # -----------------------------------------------------------------------------
-
 scholar:
   last_name: [Song]
   first_name: [Xiaowei]

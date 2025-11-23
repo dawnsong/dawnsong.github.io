@@ -63,7 +63,7 @@ function moveDivToUl() {
   //this selection only works after I have put xplayer div behind all the ul > li in footer.html instead of footer/custom.html
   var li=$("div.page__footer-follow > ul.social-icons > li:nth-child(1)");
   li.css('color','red');
-  console.log(li.text());
+  // console.log(li.text());
   // console.log(li.parent().text());
   // $("ul.social-icons > li:nth-child(3)").appendChild($("#xplayer"));
   //to debug
@@ -93,7 +93,7 @@ const formatAsByteString = (bytes) => {
 	const oneMegabyte = 1024 * 1024;
 	const oneKilobyte = 1024;
 
-	return bytes > oneGigabyte ? `${(bytes / oneGigabyte).toFixed(2)} GB` : bytes > oneMegabyte ? `${(bytes / oneMegabyte).toFixed(2)} MB` : `${(bytes / oneKilobyte).toFixed(2)}KB`;
+	return bytes > oneGigabyte ? `${(bytes / oneGigabyte).toFixed(1)} GB` : bytes > oneMegabyte ? `${(bytes / oneMegabyte).toFixed(1)} MB` : `${(bytes / oneKilobyte).toFixed(1)}KB`;
 }
 async function getStorageQuotaText() {
     // Check if navigator.storage and navigator.storage.estimate are available
@@ -182,6 +182,7 @@ window.addEventListener('load', async () => {
       console.log('Cached songs: ', songs);
       //----------------------------------
       var ap = new APlayer({
+        id4audio: 'xAudio',
         element: document.getElementById('xplayer'),
         narrow: false,
         //fixed: true, //<!--吸底模式 -->  
