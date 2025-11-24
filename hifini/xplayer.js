@@ -415,17 +415,16 @@ window.addEventListener('load', async () => {
             hiddenTime.setAttribute('datetime', new Date().toISOString());
           }         
           // console.log("minutes diff: ", minutesDiff)        
+          await log4quota();
         }  
       });
-      ap.on('loadeddata', function () {
+      ap.on('loadeddata', async function () {
         console.log('loadeddata of song: ' + ap.list.index );
         console.log('URL: ' + ap.list.audios[ap.list.index].url);
         console.log(ap.list.audios[ap.list.index]);
         //console.log(null==ap.audios); //true
         console.log("src: "+ ap.audio.src)
-
         console.log(ap.audio.buffered)
-
       });
       //save decoded hifini URLs (i.e., qq music url) to local cookies
       // ap.on('play', function () {
