@@ -130,7 +130,8 @@ async function getStorageQuotaText() {
 async function log4quota(){
   const { totalQuota, usedQuota, freeQuota } = await getStorageQuotaText();
   // console.log("totalQuota: "+totalQuota);
-  document.getElementById('idbQuotaTotal').textContent = totalQuota;
+  let nCachedSongs=await countAllRecords(storeName);
+  document.getElementById('idbQuotaTotal').textContent = `${totalQuota} , ${nCachedSongs}`;
   // console.log("usedQuota: "+usedQuota);
   document.getElementById('idbQuotaUsed').textContent = usedQuota;
   console.log("freeQuota: "+freeQuota);
@@ -234,6 +235,34 @@ function keyExists(key) {
   });
 }
 
+function countAllRecords(storeName) {
+  return new Promise((resolve, reject) => {
+    // Start a read-only transaction on the specified object store
+    const transaction = idb4songs.transaction([storeName], "readonly");
+    const objectStore = transaction.objectStore(storeName);
+    // Create a count request
+    const countRequest = objectStore.count();
+    // Handle the success event of the count request
+    countRequest.onsuccess = (event) => {
+      const recordCount = event.target.result;
+      resolve(recordCount);
+    };
+    // Handle any errors during the transaction or count request
+    countRequest.onerror = (event) => {
+      reject("Error counting records: " + event.target.error);
+    };
+  });
+}
+// Example usage:
+// Assuming 'myDatabase' is your IndexedDB database and 'myObjectStore' is the store name
+// countAllRecords(myDatabase, 'myObjectStore')
+//   .then(count => {
+//     console.log('Total records in myObjectStore:', count);
+//   })
+//   .catch(error => {
+//     console.error(error);
+//   });
+
 async function loadAudioBlob(key) {
   // const db = await openDB();  
   return new Promise((resolve, reject) => {
@@ -257,7 +286,7 @@ async function url4cachedSong(doFetchAudio, fn, sUrl){
   try{
     if(await keyExists(fn)==0) { 
       console.log(`Audio not cached yet for '${fn}', will download and cache it now if ${doFetchAudio}>0`);
-      if(doFetchAudio>0){ 
+      if(doFetchAudio){ 
         await saveUrlContentToDB(sUrl, fn);
       }
     }
@@ -356,11 +385,13 @@ window.addEventListener('load', async () => {
         // songs=await updateSongsURL2local(ap.list.audios, nSongs<=10 ); //ignore when all.json is loaded
         // ap.list.audios=songs;
         //only cacche the current playing song
-        ap.list.audios[ap.list.index]=await updateSong2local(ap.list.audios[ap.list.index], nSongs<=10);
+        let currentSong=ap.list.audios[ap.list.index];
+        // ap.list.audios[ap.list.index]=await updateSong2local(currentSong, nSongs<=10);
+        await updateSong2local(currentSong, nSongs<=10);
 
-        var sName  =ap.list.audios[ap.list.index].name;
-        var sArtist=ap.list.audios[ap.list.index].artist;
-        console.log('play event of song: ' + ap.list.index + ' , Started playing: ' + sName + ' | ' + sArtist); 
+        var sName  =currentSong.name;
+        var sArtist=currentSong.artist;
+        console.log(`play event of song/${ap.list.index} : ${sName} | ${sArtist} | ${ap.list.audios[ap.list.index].url} `);  //  ${currentSong.url} is already cached URL!!!
 
         var navPanel=$('#xplayer');
         if(navPanel.length){
