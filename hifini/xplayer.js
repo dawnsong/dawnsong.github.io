@@ -181,10 +181,10 @@ function saveAudioBlob(blob, key) {
   const request = store.put(audioRecord);
   // const request = store.put(blob, key);
   request.onsuccess = () => {
-    console.log(`Audio Blob for key '${key}' saved successfully!`);
+    console.log(`Audio Blob (${blob.size}) for key '${key}' saved successfully!`);
   };
   request.onerror = (event) => {
-    console.error('Error saving Blob:', event.target.error);
+    console.error(`Error saving Blob/${key}:`, event.target.error);
   };
   // Optional: Listen for the transaction to complete
   transaction.oncomplete = () => {
@@ -192,7 +192,7 @@ function saveAudioBlob(blob, key) {
   };
 }
 async function saveUrlContentToDB(url, key) {
-  console.log(`Starting download for: ${url}`);  
+  console.log(`Start downloading for ${key}: ${url}`);  
   try {
     // 1. Fetch the URL content and get the Blob
     const audioBlob = await fetchAudioAsBlob(url);
@@ -201,7 +201,7 @@ async function saveUrlContentToDB(url, key) {
     // (Assumes 'db' is already initialized by calling openDB() earlier)
     saveAudioBlob(audioBlob, key);    
   } catch (error) {
-    console.error(`Failed to save audio for key ${key}:`, error);
+    console.error(`Failed to fetch&save audio for key/url ${key}/${url}:`, error);
   }
 }
 
@@ -251,11 +251,17 @@ async function loadAudioBlob(key) {
 async function url4cachedSong(doFetchAudio, fn, sUrl){
 // xplayer.js:1 /404
 // xplayer.js:1 /xmusic/q/黄渤__这就是命.mp3
-  if(!fn.match(/\/xmusic/i)){return sUrl}
+  if(!fn.match(/\/xmusic.*/i)){return sUrl}
+  // console.log(`url4cachedSong checking for '${fn}'`);
   let aBlob=null;
   try{
-    if(keyExists(fn)==0) { if(doFetchAudio) await saveUrlContentToDB(sUrl, fn);}
-    if(keyExists(fn)>0){
+    if(await keyExists(fn)==0) { 
+      console.log(`Audio not cached yet for '${fn}', will download and cache it now if ${doFetchAudio}>0`);
+      if(doFetchAudio>0){ 
+        await saveUrlContentToDB(sUrl, fn);
+      }
+    }
+    if(await keyExists(fn)>0){
       aBlob=await loadAudioBlob(fn); 
       if(aBlob != null ){return URL.createObjectURL(aBlob.data);}//already cached
     }else {
@@ -272,16 +278,21 @@ async function url4cachedSong(doFetchAudio, fn, sUrl){
     return sUrl;
   }
 }
+async function updateSong2local(song, doFetchAudio){
+  let sUrl=song.url;
+  let uo=new URL(sUrl);    
+  let fn=decodeURI(uo.pathname);
+  console.log(`trying to cache song '${fn}'`);
+  song.url=await url4cachedSong(doFetchAudio, fn, sUrl);
+  return song;
+}
 //manage local cache DB for songs
 function updateSongsURL2local(songs, doFetchAudio){  
-  let lSongs=songs;
-  let doFetchAudio2= doFetchAudio && nSongs<=10; //ignore when all.json is loaded
+  let lSongs=songs;  
   lSongs.forEach(async function(song) {
-    let sUrl=song.url;
-    let uo=new URL(sUrl);    
-    let fn=decodeURI(uo.pathname);
-    console.log(fn);
-    song.url=await url4cachedSong(doFetchAudio2, fn, sUrl);
+    await updateSong2local(song, doFetchAudio).then(updatedSong => {
+      console.log(`Updated song URL for '${updatedSong.name}': ${updatedSong.url}`);
+    });
   });  
   return lSongs;
 }
@@ -310,7 +321,7 @@ const openIndexedDb = (dbName, stores) => {
 };
 // Attach IndexedDB - creation to the window.onload - event
 window.addEventListener('load', async () => {	
-  idb4songs =  openIndexedDb('xdb4songs', [{ name: storeName, keyPath: storeKey }]);
+  idb4songs = await openIndexedDb('xdb4songs', [{ name: storeName, keyPath: storeKey }]);
   //https://blog.q-bit.me/how-to-use-indexeddb-to-store-images-and-other-files-in-your-browser/          
   // renderAvailableImagesFromDb();    
 	  
@@ -340,14 +351,16 @@ window.addEventListener('load', async () => {
         audio: getRandomSubarray(songs, nSongs)
       });
       //change pixabay images once a song switched
-      ap.audio.addEventListener('play', function(){ 
+      ap.audio.addEventListener('play', async function(){ 
         //download and cache songs when user clicks PLAY for the first time
-        songs=updateSongsURL2local(ap.list.audios, 1);
-        ap.list.audios=songs;
+        // songs=await updateSongsURL2local(ap.list.audios, nSongs<=10 ); //ignore when all.json is loaded
+        // ap.list.audios=songs;
+        //only cacche the current playing song
+        ap.list.audios[ap.list.index]=await updateSong2local(ap.list.audios[ap.list.index], nSongs<=10);
 
         var sName  =ap.list.audios[ap.list.index].name;
         var sArtist=ap.list.audios[ap.list.index].artist;
-        console.log('play event of song: ' + ap.list.index + 'Started playing: ' + sName + ' | ' + sArtist); 
+        console.log('play event of song: ' + ap.list.index + ' , Started playing: ' + sName + ' | ' + sArtist); 
 
         var navPanel=$('#xplayer');
         if(navPanel.length){
