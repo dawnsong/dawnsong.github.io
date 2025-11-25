@@ -358,7 +358,7 @@ window.addEventListener('load', async () => {
   json2array(jsonUrl).then(async songs => {
     if(songs){      
       // console.log('Parsed songs: ', songs);
-      songs=updateSongsURL2local(songs, 0); //do not download and cache songs automatically, can be triggered by user click PLAY later
+      songs=updateSongsURL2local(getRandomSubarray(songs, nSongs), 0); //do not download and cache songs automatically, can be triggered by user click PLAY later
       console.log('Cached songs: ', songs);
       //----------------------------------
       var ap = new APlayer({
@@ -377,7 +377,7 @@ window.addEventListener('load', async () => {
         mutex: true,
         theme:  '#ad7a86', // '#b7daff',  //'#0a0a0f',//
         listFolded: true,
-        audio: getRandomSubarray(songs, nSongs)
+        audio: songs
       });
       //change pixabay images once a song switched
       ap.audio.addEventListener('play', async function(){ 
