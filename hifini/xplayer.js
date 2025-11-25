@@ -387,7 +387,7 @@ window.addEventListener('load', async () => {
         //only cacche the current playing song
         let currentSong=ap.list.audios[ap.list.index];
         // ap.list.audios[ap.list.index]=await updateSong2local(currentSong, nSongs<=10);
-        await updateSong2local(currentSong, nSongs<=10);
+        await updateSong2local(currentSong, nSongs>0);
 
         var sName  =currentSong.name;
         var sArtist=currentSong.artist;
@@ -418,7 +418,7 @@ window.addEventListener('load', async () => {
           await log4quota();
         }  
       });
-      ap.on('loadeddata', async function () {
+      ap.on('loadeddata', async function () {//just a song's data loaded, not its audio loaded yet
         console.log('loadeddata of song: ' + ap.list.index );
         console.log('URL: ' + ap.list.audios[ap.list.index].url);
         console.log(ap.list.audios[ap.list.index]);
