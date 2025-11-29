@@ -29,10 +29,11 @@ async function json2array(url4gJson){
 function getParam(name, defaultValue) {
   const urlParams = new URLSearchParams(window.location.search);
   const value = urlParams.get(name);
-
   return value !== null ? value : defaultValue;
 }
 
+let ap=null;
+//------------------------------------------------------------------------------
 var songIdx=randomInt(0, max10);
 var jsonUrl=`https://storage.googleapis.com/xpub/playlists/${String(songIdx).padStart(8, '0')}.json`;
 var nSongs=getParam('x', 10);
@@ -40,10 +41,18 @@ if(nSongs>10){
   songIdx=0;
   jsonUrl=`https://storage.googleapis.com/xpub/playlists/all.json`;
 }
-console.log(`nSongs=${nSongs} , jsonUrl=${jsonUrl}`);
 
+var pPlaylist=getParam('playlist', 'random');
+if(pPlaylist!='random'){
+  jsonUrl=`https://storage.googleapis.com/xpub/playlists/${pPlaylist}.json`;
+}
+
+var pRandom=getParam('r', 1);
+console.log(`nSongs=${nSongs} , jsonUrl=${jsonUrl} , pRandom=${pRandom} , pPlaylist=${pPlaylist} `);
+//------------------------------------------------------------------------------
 function getRandomSubarray(arr, size) {
   if(size>arr.length) size=arr.length;
+  if(pRandom<=0 || songIdx==0)return arr.slice(0, size);
   var shuffled = arr.slice(0), i = arr.length, min = i - size, temp, index;
   while (i-- > min) {
       index = Math.floor((i + 1) * Math.random());
@@ -358,10 +367,10 @@ window.addEventListener('load', async () => {
   json2array(jsonUrl).then(async songs => {
     if(songs){      
       // console.log('Parsed songs: ', songs);
-      songs=updateSongsURL2local(getRandomSubarray(songs, nSongs), 0); //do not download and cache songs automatically, can be triggered by user click PLAY later
+      songs=updateSongsURL2local(getRandomSubarray(songs, nSongs), 0); //do not download and cache songs automatically, can be triggered by user click PLAY later      
       console.log('Cached songs: ', songs);
       //----------------------------------
-      var ap = new APlayer({
+      ap = new APlayer({
         id4audio: 'xAudio',
         element: document.getElementById('xplayer'),
         narrow: false,
@@ -369,9 +378,9 @@ window.addEventListener('load', async () => {
         mini: false, 
         autoplay: false, // Google Chrome disabled autoplay and require user's response before auto playback
         loop: 'all',
-        order: 'random',
+        order: songIdx !== 0 ? 'random' : 'list' ,
         volume: 1,
-        preload: 'auto', //'auto', 'none'
+        preload: 'none', //'auto', 'none'
         showlrc: false, //
         lrctype:3,
         mutex: true,
