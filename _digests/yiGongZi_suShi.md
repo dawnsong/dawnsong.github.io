@@ -10,7 +10,7 @@ bibliography: yiGongZi.bib
 date: 2025-11-28
 ---
 <!--todo: fix the citation and references in page/digest -->
-意公子自2013年开始做自媒体，2016年开始更新Youtube<d-cite key="yigongzi2016youtube"></d-cite>。
+意公子自2013年开始做自媒体，2016年开始更新<a href="https://www.youtube.com/@EYart-yigongzi">Youtube</a> <d-cite key="yigongzi2016youtube"></d-cite>。
 {% quote %}
 把中華五千年文化長河裡，那些打動我們的人事物，帶進當下人們的生活。
 {% endquote %}
