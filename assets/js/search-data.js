@@ -437,6 +437,11 @@ ninja.data = [{
           description: "Model explanation for time-series with shapley",
           section: "Digests",handler: () => {
               window.location.href = "/digests/ShaTS/";
+            },},{id: "digests-意公子講蘇軾",
+          title: '意公子講蘇軾',
+          description: "吴敏婕重读苏轼的起伏人生",
+          section: "Digests",handler: () => {
+              window.location.href = "/digests/yiGongZi_suShi/";
             },},{id: "news-a-simple-inline-announcement",
           title: 'A simple inline announcement.',
           description: "",
