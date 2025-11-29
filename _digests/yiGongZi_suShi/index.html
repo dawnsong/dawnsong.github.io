@@ -179,6 +179,8 @@ if(cpPlaylist=='random'){
             // img.src=currentSong.cover ; // `${currentSong.cover}#cachebuster=${timestamp}`; 
             let srcSet=document.querySelector(".responsive-img-srcset");//only need to change the responsive source set!
             srcSet.srcset=currentSong.cover;
+            let divCaption=document.querySelector("div.caption");
+            divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
         });
     }, 3000); //allow 3 seconds to check if ap is loaded    
 }
