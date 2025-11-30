@@ -17,7 +17,7 @@ date: 2025-11-28
 
 <div class="language-plaintext highlighter-rouge highlight code-display-wrapper">
 <pre class="highlight" style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">
-<table id="tbl4suShi" class="stripe row-border order-column" cellspacing="0" width="100%">
+<table id="tbl4desc" class="stripe row-border order-column" cellspacing="0" width="100%">
     <thead>
         <tr> <th></th>       
           <th>idx</th>
@@ -88,19 +88,6 @@ waitForElement('#xplayer', (divElement) => {
 //   newDiv.textContent = 'This is a dynamically added div.';
 //   document.body.appendChild(newDiv);
 // }, 1500);
-//------------------------------------------------------------------------------
-function waitForObject(objectName, callback) {
-  const intervalId = setInterval(() => {
-    if (window[objectName]) { // Or a specific property of an object: if (someObject.someProperty)
-      clearInterval(intervalId);
-      callback(window[objectName]); // Pass the object to the callback
-    }
-  }, 100); // Check every 100 milliseconds
-}
-// waitForObject('ap', (obj) => {
-//   console.log('ap exists:', obj);
-//   // Now you can use obj.someMethod() or obj.someProperty
-// });
 //------------------------------------------------------------------------------
 
 async function idb2dataArray(idb, storeName){
@@ -179,7 +166,7 @@ if(cpPlaylist=='random'){//no param has been passed yet to set the xPlayer
     }, 3000); //allow 3 seconds delay/timeout to check if ap is loaded    
 }
 
-let dt=null;
+let dt=null, dt4desc=null;
 function rmKey(key) {
   return new Promise((resolve, reject) => {
     if (!idb4songs) {
@@ -226,9 +213,9 @@ function renderData2table(arr4tb){
         return data; // For sorting and other types, return original data
       }}],
     data: arr4tb,
-    layout: {
-      topStart: { }
-    },
+    // layout: {
+    //   topStart: { }
+    // },
     order: [[4, 'desc']],
     // select: true
     select: {
@@ -257,4 +244,29 @@ function renderData2table(arr4tb){
   dtSearchParentDiv=document.querySelector(".dt-layout-cell.dt-end");
   dtSearchParentDiv.insertBefore(btnRm, dtSearchParentDiv.firstChild);
 }
+
+async function renderSuShi(){
+  let data4suShi=await json2array('/hifini/yiGongZi/suShi-desc.json');
+  console.log(data4suShi);
+  let dt4desc=new DataTable('#tbl4desc', {
+    columnDefs: [
+        {//checkbox for the 1st select col
+            orderable: false,
+            render: DataTable.render.select(),
+            targets: 0,
+            searchable: false            
+        }
+    ],
+    columns: [{data:0}, { data: 'index' },{ data: 'desc' }],
+    order: [[1, 'asc']],
+    data: data4suShi,    
+    // select: true
+    select: {
+        style: 'os',
+        selector: 'td:first-child'
+    }
+  });
+}
+setTimeout(async () => { await renderSuShi(); }, 5000);
+
 </script>>
