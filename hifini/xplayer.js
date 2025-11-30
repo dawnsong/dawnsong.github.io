@@ -140,7 +140,7 @@ async function log4quota(){
   const { totalQuota, usedQuota, freeQuota } = await getStorageQuotaText();
   // console.log("totalQuota: "+totalQuota);
   let nCachedSongs=await countAllRecords(storeName);
-  document.getElementById('idbQuotaTotal').textContent = `${totalQuota} , ${nCachedSongs}`;
+  document.getElementById('idbQuotaTotal').textContent =`${nCachedSongs}`; // `${totalQuota} , ${nCachedSongs}`;
   // console.log("usedQuota: "+usedQuota);
   document.getElementById('idbQuotaUsed').textContent = usedQuota;
   console.log("freeQuota: "+freeQuota);
@@ -240,6 +240,27 @@ function keyExists(key) {
       console.log(`count(${key})= ${count}`)
       // If count is 1, the key exists; if 0, it doesn't.
       resolve(count > 0);
+    };
+  });
+}
+function rmKey(key) {
+  return new Promise((resolve, reject) => {
+    if (!idb4songs) {
+      reject(new Error('Database not initialized.'));
+      return;
+    }
+    // 1. Initiate a read-write transaction
+    const transaction = idb4songs.transaction([storeName], 'readwrite');
+    const store = transaction.objectStore(storeName);
+    // 2. Request to delete the specific key
+    const request = store.delete(key);
+    request.onerror = (event) => {
+      console.error('Error deleting key:', event.target.error);
+      reject(event.target.error);
+    };
+    request.onsuccess = (event) => {
+      console.log(`Key '${key}' deleted successfully.`);
+      resolve();
     };
   });
 }
