@@ -5,7 +5,17 @@ permalink: /digests/
 description: Papers/books digest.
 nav: true
 nav_order: 6
-display_categories: [Machine-learning, Healthcare, Neuroimaging, Robust, Big-data, cryoET, cryoEM, 意公子]
+display_categories:
+  [
+    Machine-learning,
+    Healthcare,
+    Neuroimaging,
+    Robust,
+    Big-data,
+    cryoET,
+    cryoEM,
+    意公子,
+  ]
 horizontal: true
 ---
 

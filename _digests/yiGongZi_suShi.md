@@ -9,7 +9,9 @@ related_publications: true
 bibliography: assets/bibliography/yiGongZi_suShi.bib
 date: 2025-11-28
 ---
+
 <!--todo: fix the citation and references in page/digest -->
+
 意公子自2013年开始做自媒体，2016年开始更新<a href="https://www.youtube.com/@EYart-yigongzi">Youtube</a> <d-cite key="yigongzi2016youtube"></d-cite>, 成名于其蘇軾系列。为方便开车送娃的时候听着学习，特整理其这个系列到此网页。
 {% quote %}
 意公子:把中華五千年文化長河裡，那些打動我們的人事物，帶進當下人們的生活。
@@ -37,8 +39,8 @@ date: 2025-11-28
     Current playing episode.
 </div>
 
-
 {% details Manage local indexedDB cached MP3s %}
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <link rel="stylesheet" href="https://cdn.datatables.net/2.3.5/css/dataTables.dataTables.css" />
 <script src="https://cdn.datatables.net/2.0.7/js/dataTables.min.js"></script>
