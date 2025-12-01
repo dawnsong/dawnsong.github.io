@@ -20,7 +20,7 @@ for d in suShi/*.description; do
 		value="${epi[$key]}"
 		jsonStr=$(jq -n --argjson data "$jsonStr" --arg key "$key" --arg value "$value" '$data + {($key) : $value }')
 	done
-	echo "$jsonStr ," 
+	echo "$jsonStr ,"
 done >> $fdesc
 sed -i '$ s/,$//' suShi.json #rm last colon from the last line
 echo ']' >>  $fdesc
