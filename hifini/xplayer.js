@@ -172,7 +172,7 @@ async function fetchAudioAsBlob(url) {
  * @param {Blob} blob The audio Blob to save.
  * @param {string} key The unique ID (e.g., a filename or UUID) for the entry.
  */
-function saveAudioBlob(blob, key) {
+function saveAudioBlob(blob, key, song) {
   if (!idb4songs) {
     throw new Error('Database not open.');    
   }
@@ -180,12 +180,14 @@ function saveAudioBlob(blob, key) {
   const transaction = idb4songs.transaction([storeName], 'readwrite');
   const store = transaction.objectStore(storeName);
   // // 2. Prepare the object to save
+  delete song["url"]; //remove url from meta to save space
   const audioRecord = {
     [storeKey]: key, // Primary key
     data: blob,
     timestamp: Date.now(),
     mimeType: blob.type,
-    size: blob.size
+    size: blob.size,
+    meta: song || {}
   };
   // 3. Request to add/put the object into the store
   const request = store.put(audioRecord);
@@ -201,7 +203,7 @@ function saveAudioBlob(blob, key) {
     console.log('Transaction completed.');
   };
 }
-async function saveUrlContentToDB(url, key) {
+async function saveUrlContentToDB(url, key, song) {
   console.log(`Start downloading for ${key}: ${url}`);  
   try {
     // 1. Fetch the URL content and get the Blob
@@ -209,7 +211,7 @@ async function saveUrlContentToDB(url, key) {
     console.log(`Download complete. Blob size: ${audioBlob.size} bytes`);
     // 2. Save the resulting Blob into IndexedDB
     // (Assumes 'db' is already initialized by calling openDB() earlier)
-    saveAudioBlob(audioBlob, key);    
+    saveAudioBlob(audioBlob, key, song);    
   } catch (error) {
     console.error(`Failed to fetch&save audio for key/url ${key}/${url}:`, error);
   }
@@ -307,7 +309,7 @@ async function loadAudioBlob(key) {
 // keyExists('session_456_audio').then(exists => {
 //   console.log('Key exists:', exists); // true or false
 // });
-async function url4cachedSong(doFetchAudio, fn, sUrl){
+async function url4cachedSong(doFetchAudio, fn, sUrl, song){
 // xplayer.js:1 /404
 // xplayer.js:1 /xmusic/q/黄渤__这就是命.mp3
   if(!fn.match(/\/xmusic.*/i)){return sUrl}
@@ -317,7 +319,7 @@ async function url4cachedSong(doFetchAudio, fn, sUrl){
     if(await keyExists(fn)==0) { 
       console.log(`Audio not cached yet for '${fn}', will download and cache it now if ${doFetchAudio}>0`);
       if(doFetchAudio){ 
-        await saveUrlContentToDB(sUrl, fn);
+        await saveUrlContentToDB(sUrl, fn, song);
       }
     }
     if(await keyExists(fn)>0){
@@ -342,7 +344,7 @@ async function updateSong2local(song, doFetchAudio){
   let uo=new URL(sUrl);    
   let fn=decodeURI(uo.pathname);
   console.log(`trying to cache song '${fn}'`);
-  song.url=await url4cachedSong(doFetchAudio, fn, sUrl);
+  song.url=await url4cachedSong(doFetchAudio, fn, sUrl, song);
   return song;
 }
 //manage local cache DB for songs
