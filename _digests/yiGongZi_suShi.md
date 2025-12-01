@@ -230,6 +230,9 @@ function renderData2table(arr4tb){
   btnRm.textContent ="RM Selected ... ";
   btnRm.id='btnRm';
   btnRm.classList.add("dt-button");
+  dtSearchParentDiv=document.querySelector("#divTbl4idb .dt-layout-cell.dt-end");
+  dtSearchParentDiv.insertBefore(btnRm, dtSearchParentDiv.firstChild);
+  
   btnRm.addEventListener('click', async () => {    
     var selectedRowsData = dt.rows({ selected: true }).data();
     // Iterate through the selected rows' data
@@ -242,9 +245,7 @@ function renderData2table(arr4tb){
     //reload the data
     let data4tbl=await idb2dataArray(idb4songs, storeName);          
     renderData2table(data4tbl);
-  });
-  dtSearchParentDiv=document.querySelector(".dt-layout-cell.dt-end");
-  dtSearchParentDiv.insertBefore(btnRm, dtSearchParentDiv.firstChild);
+  });  
 }
 
 async function renderSuShi(){
