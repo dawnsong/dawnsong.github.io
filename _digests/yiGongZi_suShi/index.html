@@ -62,6 +62,14 @@ async function idb2dataArray(idb, storeName){
   });
 }
 
+function updateCoverImg(rIdx){
+  let srcSet=document.querySelector(".responsive-img-srcset");//only need to change the responsive source set!        
+  currentSong=ap.list.audios[rIdx];
+  srcSet.srcset=currentSong.cover;
+  let divCaption=document.querySelector("div.caption");
+  divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
+}
+
 const currentUrl = new URL(window.location.href);
 const params = currentUrl.searchParams;
 let cpPlaylist=params.get('playlist') ;
@@ -78,22 +86,8 @@ if(cpPlaylist=='random'){//no param has been passed yet to set the xPlayer
     console.log(params)
     setTimeout(async () => {
         console.log(`ap: ${ap}`) ;
-        ap.audio.addEventListener('play', async function(){ 
-            let currentSong=ap.list.audios[ap.list.index];
-            console.log(currentSong.cover);
-            // let apCoverDiv=document.querySelector("div#cover4yiGongZi");
-            // if(apCoverDiv){
-            //     const image = apCoverDiv.querySelectorAll('img')[0];
-            //     const timestamp = new Date().getTime(); // Get a unique timestamp
-            //     image.src= `${currentSong.cover}?cachebuster=${timestamp}`; //force browser to refresh the image
-            // };
-            // let img=document.querySelector(".img-fluid");
-            // // const timestamp = new Date().getTime(); // Get a unique timestamp
-            // img.src=currentSong.cover ; // `${currentSong.cover}#cachebuster=${timestamp}`; 
-            let srcSet=document.querySelector(".responsive-img-srcset");//only need to change the responsive source set!
-            srcSet.srcset=currentSong.cover;
-            let divCaption=document.querySelector("div.caption");
-            divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
+        ap.audio.addEventListener('play', async function(){             
+            updateCoverImg(ap.list.index);
         });
         //list cached songs to the table
         if(typeof idb4songs !== 'undefined' && idb4songs!==null){
@@ -102,6 +96,9 @@ if(cpPlaylist=='random'){//no param has been passed yet to set the xPlayer
           // console.log(data4tbl);  
           renderData2table(data4tbl);
         }
+        //randomly init the cover image since the default expiring days is 7 in google storage
+        rIdx=Math.floor(Math.random() * 39);
+        updateCoverImg(rIdx);
     }, 3000); //allow 3 seconds delay/timeout to check if ap is loaded    
 }
 
@@ -228,7 +225,7 @@ async function renderSuShi(){
 }
 setTimeout(async () => { await renderSuShi(); }, 5000);
 
-</script> <blockquote> </blockquote> </article> <h2>References</h2> <div class="publications"> </div> </div> </div> <footer class="sticky-bottom mt-5" role="contentinfo"> <div class="container"> <div id="xplayer" style="text-align: left;"></div> <script type="text/javascript" src="https://storage.googleapis.com/xpub/playlists/json.js" defer></script> <script type="text/javascript" src="/hifini/xplayer.js" defer></script> Powered by <a href="https://jekyllrb.com/" target="_blank" rel="external nofollow noopener">Jekyll</a> | <a href="https://github.com/alshedivat/al-folio" rel="external nofollow noopener" target="_blank">al-folio</a>. <b id="idbQuotaUsed"></b>|<b id="idbQuotaTotal"></b> © Copyright 2025 Xiaowei Song. Last updated: December 01, 2025. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script src="/assets/js/bootstrap.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js?a0db7e5d5c70cc3252b3138b0c91dcaf" type="text/javascript"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/js/zoom.js?c29fd54348398a9a75966ef9a8e5d84b"></script> <script src="/assets/js/no_defer.js?2781658a0a2b13ed609542042a859126"></script> <script defer src="/assets/js/common.js?e0514a05c5c95ac1a93a8dfd5249b92e"></script> <script defer src="/assets/js/copy_code.js?2b177038d0885a876f47a3df6474238a" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?d9f17b6adc2311cbabd747f4538bb15f"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script> <script src="/assets/js/mathjax-setup.js?a5bb4e6a542c546dd929b24b8b236dfd"></script> <script defer src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6" crossorigin="anonymous"></script> <script async src="https://www.googletagmanager.com/gtag/js?id=G-BYFL6HDBJH"></script> <script>
+</script> <blockquote> </blockquote> </article> <h2>References</h2> <div class="publications"> </div> </div> </div> <footer class="sticky-bottom mt-5" role="contentinfo"> <div class="container"> <div id="xplayer" style="text-align: left;"></div> <script type="text/javascript" src="https://storage.googleapis.com/xpub/playlists/json.js" defer></script> <script type="text/javascript" src="/hifini/xplayer.js" defer></script> Powered by <a href="https://jekyllrb.com/" target="_blank" rel="external nofollow noopener">Jekyll</a> | <a href="https://github.com/alshedivat/al-folio" rel="external nofollow noopener" target="_blank">al-folio</a>. <b id="idbQuotaUsed"></b>|<b id="idbQuotaTotal"></b> © Copyright 2025 Xiaowei Song. Last updated: December 02, 2025. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script src="/assets/js/bootstrap.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js?a0db7e5d5c70cc3252b3138b0c91dcaf" type="text/javascript"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/js/zoom.js?c29fd54348398a9a75966ef9a8e5d84b"></script> <script src="/assets/js/no_defer.js?2781658a0a2b13ed609542042a859126"></script> <script defer src="/assets/js/common.js?e0514a05c5c95ac1a93a8dfd5249b92e"></script> <script defer src="/assets/js/copy_code.js?2b177038d0885a876f47a3df6474238a" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?d9f17b6adc2311cbabd747f4538bb15f"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script> <script src="/assets/js/mathjax-setup.js?a5bb4e6a542c546dd929b24b8b236dfd"></script> <script defer src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6" crossorigin="anonymous"></script> <script async src="https://www.googletagmanager.com/gtag/js?id=G-BYFL6HDBJH"></script> <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() {
       dataLayer.push(arguments);
