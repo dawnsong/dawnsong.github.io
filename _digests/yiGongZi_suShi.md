@@ -125,6 +125,14 @@ async function idb2dataArray(idb, storeName){
   });
 }
 
+function updateCoverImg(rIdx){
+  let srcSet=document.querySelector(".responsive-img-srcset");//only need to change the responsive source set!        
+  currentSong=ap.list.audios[rIdx];
+  srcSet.srcset=currentSong.cover;
+  let divCaption=document.querySelector("div.caption");
+  divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
+}
+
 const currentUrl = new URL(window.location.href);
 const params = currentUrl.searchParams;
 let cpPlaylist=params.get('playlist') ;
@@ -141,22 +149,8 @@ if(cpPlaylist=='random'){//no param has been passed yet to set the xPlayer
     console.log(params)
     setTimeout(async () => {
         console.log(`ap: ${ap}`) ;
-        ap.audio.addEventListener('play', async function(){ 
-            let currentSong=ap.list.audios[ap.list.index];
-            console.log(currentSong.cover);
-            // let apCoverDiv=document.querySelector("div#cover4yiGongZi");
-            // if(apCoverDiv){
-            //     const image = apCoverDiv.querySelectorAll('img')[0];
-            //     const timestamp = new Date().getTime(); // Get a unique timestamp
-            //     image.src= `${currentSong.cover}?cachebuster=${timestamp}`; //force browser to refresh the image
-            // };
-            // let img=document.querySelector(".img-fluid");
-            // // const timestamp = new Date().getTime(); // Get a unique timestamp
-            // img.src=currentSong.cover ; // `${currentSong.cover}#cachebuster=${timestamp}`; 
-            let srcSet=document.querySelector(".responsive-img-srcset");//only need to change the responsive source set!
-            srcSet.srcset=currentSong.cover;
-            let divCaption=document.querySelector("div.caption");
-            divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
+        ap.audio.addEventListener('play', async function(){             
+            updateCoverImg(ap.list.index);
         });
         //list cached songs to the table
         if(typeof idb4songs !== 'undefined' && idb4songs!==null){
@@ -165,6 +159,9 @@ if(cpPlaylist=='random'){//no param has been passed yet to set the xPlayer
           // console.log(data4tbl);  
           renderData2table(data4tbl);
         }
+        //randomly init the cover image since the default expiring days is 7 in google storage
+        rIdx=Math.floor(Math.random() * 39);
+        updateCoverImg(rIdx);
     }, 3000); //allow 3 seconds delay/timeout to check if ap is loaded    
 }
 
