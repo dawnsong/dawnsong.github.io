@@ -262,6 +262,23 @@ function renderData2table(arr4tb){
     let data4tbl=await idb2dataArray(idb4songs, storeName);          
     renderData2table(data4tbl);
   });
+
+  const btnPlaySelected= document.createElement('button');
+  btnPlaySelected.textContent ="Play Selected";  
+  btnPlaySelected.classList.add("dt-button");  
+  dtSearchParentDiv.insertBefore(btnPlaySelected, dtSearchParentDiv.firstChild);
+  btnPlaySelected.addEventListener('click', async () => { 
+    ap.list.clear();
+    var selectedRowsData = dt.rows({ selected: true }).data();    
+    selectedRowsData.each(async function(rowData) {
+      aBlob=await loadAudioBlob(rowData['fileName']); 
+      if(aBlob != null )
+      if('meta' in rowData)
+        ap.list.add([{"name":rowData['name'], "artist":rowData['artist'], "url":URL.createObjectURL(aBlob.data), "cover":rowData['meta']["cover"]}]);
+      else
+        ap.list.add([{"name":rowData['name'], "artist":rowData['artist'], "url":URL.createObjectURL(aBlob.data)}]);
+    });    
+  });
 }
 
 async function renderSuShi(){

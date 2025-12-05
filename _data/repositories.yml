@@ -1,6 +1,7 @@
 github_users:
   # - torvalds
   # - alshedivat
+  - dawnsong
 
 repo_description_lines_max: 2
 
@@ -13,3 +14,10 @@ github_repos:
   # - mathjax/MathJax
   # - jpswalsh/academicons
   - TapXWorld/ChinaTextbook
+  - embedpdf/embed-pdf-viewer
+  - JohnSnowLabs/spark-nlp
+  - wilsonfreitas/awesome-quant
+  - microsoft/qlib
+  - ranaroussi/yfinance
+  - JerBouma/FinanceDatabase
+
