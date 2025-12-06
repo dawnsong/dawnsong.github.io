@@ -22,7 +22,7 @@ for d in suShi/*.description; do
 	done
 	echo "$jsonStr ,"
 done >> $fdesc
-sed -i '$ s/,$//' suShi.json #rm last colon from the last line
+sed -i '$ s/,$//' suShi-desc.json #rm last colon from the last line
 echo ']' >>  $fdesc
 #exit
 
