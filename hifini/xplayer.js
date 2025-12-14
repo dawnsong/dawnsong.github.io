@@ -43,9 +43,14 @@ if(nSongs>10){
 }
 
 var pPlaylist=getParam('playlist', 'random');
-if(pPlaylist!='random'){
-  jsonUrl=`https://storage.googleapis.com/xpub/playlists/${pPlaylist}.json`;
+let preDefinedPlaylists=['pop_chinese', 'rock_international', 'jazz_classical', 'electronic_dance', 'lofi_cafe', 'random']; //, 'offline'];
+if(!preDefinedPlaylists.includes(pPlaylist)){
+  pPlaylist='random';
+  // jsonUrl=`https://storage.googleapis.com/xpub/playlists/${pPlaylist}.json`;
 }
+// elif(pPlaylist=='offline'){
+//   jsonUrl='';
+// }
 
 var pRandom=getParam('r', 1);
 console.log(`nSongs=${nSongs} , jsonUrl=${jsonUrl} , pRandom=${pRandom} , pPlaylist=${pPlaylist} `);
