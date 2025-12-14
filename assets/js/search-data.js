@@ -442,6 +442,11 @@ ninja.data = [{
           description: "吴敏婕重读苏轼的起伏人生",
           section: "Digests",handler: () => {
               window.location.href = "/digests/yiGongZi_suShi/";
+            },},{id: "digests-离线",
+          title: '离线',
+          description: "play when my data runs out",
+          section: "Digests",handler: () => {
+              window.location.href = "/digests/offline/";
             },},{id: "news-a-simple-inline-announcement",
           title: 'A simple inline announcement.',
           description: "",
