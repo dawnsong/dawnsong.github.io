@@ -107,8 +107,9 @@ async function idb2dataArray(idb, storeName){
 }
 
 function updateCoverImg(rIdx){
-  let srcSet=document.querySelector(".responsive-img-srcset");//only need to change the responsive source set!        
+  let srcSet=document.querySelector(".responsive-img-srcset") || document.querySelector('img[title="yiGongZi_suShi"]');//only need to change the responsive source set!        
   let currentSong=ap.list.audios[rIdx];
+  console.log(`updateCoverImg: ${JSON.stringify(currentSong)} / rIdx=${rIdx}`)
   if(srcSet && currentSong){
     srcSet.srcset=currentSong.cover;
     let divCaption=document.querySelector("div.caption");
