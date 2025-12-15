@@ -128,7 +128,7 @@ async function idb2dataArray(idb, storeName){
 function updateCoverImg(rIdx){
   let srcSet=document.querySelector(".responsive-img-srcset");//only need to change the responsive source set!        
   let currentSong=ap.list.audios[rIdx];
-  if(srcSet && currentSong &&  currentSong.cover){
+  if(srcSet && currentSong){
     srcSet.srcset=currentSong.cover;
     let divCaption=document.querySelector("div.caption");
     divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
