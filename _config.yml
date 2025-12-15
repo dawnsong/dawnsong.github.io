@@ -247,7 +247,7 @@ jekyll-minifier:
 # -----------------------------------------------------------------------------
 terser:
   compress:
-    drop_console: false # remove console.log statements
+    drop_console: true # remove console.log statements
 
 # -----------------------------------------------------------------------------
 # Jekyll Archives

@@ -432,9 +432,25 @@ window.addEventListener('load', async () => {
   //https://blog.q-bit.me/how-to-use-indexeddb-to-store-images-and-other-files-in-your-browser/          
   // renderAvailableImagesFromDb();    
   if(pPlaylist=='offline'){//highest priority to load from local IndexedDB
-    let allSongs=await idb2dataArray(idb4songs, storeName);    
-    console.log('allSongs from IndexedDB: ', allSongs);
-    jsonUrl=url4jsonArray(JSON.stringify(allSongs));  
+    let allSongs=await idb2dataArray(idb4songs, storeName);
+    console.log('allSongs from IndexedDB: ', allSongs);    
+    let resultSongs=Array(allSongs.length).fill({});
+    let idx=0;
+    await Promise.all(allSongs.map(async (song) => {
+      // console.log(`Index: ${idx}, Value: ${song}`);
+      let aBlob=await loadAudioBlob(song['fileName']); 
+      let oneSong={};
+      oneSong['name']=song['name'];
+      oneSong['artist']=song['artist'];
+      oneSong['url']='';
+      oneSong['cover']='';
+      oneSong['meta']=song['meta'] || {};
+      if(aBlob != null ) oneSong['url']=URL.createObjectURL(aBlob.data);              
+      resultSongs[idx++]=oneSong;
+    }));
+    console.log('resultSongs from IndexedDB: ', resultSongs);    
+    jsonUrl=url4jsonArray(JSON.stringify(resultSongs));  
+    console.log('jsonUrl for offline playlist: ', jsonUrl);
   }  
   //make player
   json2array(jsonUrl).then(async songs => {

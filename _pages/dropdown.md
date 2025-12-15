@@ -20,4 +20,7 @@ children:
     permalink: /repositories/
   - title: people
     permalink: /people/
+  - title: divider
+  - title: offline
+    permalink: /digests/offline/?playlist=offline&x=100&r=1
 ---
