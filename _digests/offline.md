@@ -2,7 +2,7 @@
 layout: page
 title: 离线
 description: play when my data runs out
-img: 
+img: assets/img/1.jpg
 importance: 1
 category: Big-data
 related_publications: true
@@ -10,7 +10,6 @@ date: 2025-12-14
 ---
 
 <!--todo: fix the citation and references in page/digest -->
-
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0" id='cover4yiGongZi'>
@@ -109,10 +108,12 @@ async function idb2dataArray(idb, storeName){
 
 function updateCoverImg(rIdx){
   let srcSet=document.querySelector(".responsive-img-srcset");//only need to change the responsive source set!        
-  currentSong=ap.list.audios[rIdx];
-  srcSet.srcset=currentSong.cover;
-  let divCaption=document.querySelector("div.caption");
-  divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
+  let currentSong=ap.list.audios[rIdx];
+  if(srcSet && currentSong &&  currentSong.cover){
+    srcSet.srcset=currentSong.cover;
+    let divCaption=document.querySelector("div.caption");
+    divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
+  }
 }
 
 const currentUrl = new URL(window.location.href);
@@ -123,7 +124,7 @@ console.log(cpPlaylist);
 if(cpPlaylist=='random'){//no param has been passed yet to set the xPlayer
     params.set('playlist','offline');
     params.set('x','100');
-    params.set('pRandom','0');
+    params.set('r','1');
     currentUrl.search = params.toString();
     console.log(currentUrl);
     window.location.href = currentUrl.toString();    
@@ -266,6 +267,6 @@ async function renderSuShi(){
     }
   });
 }
-setTimeout(async () => { await renderSuShi(); }, 5000);
+// setTimeout(async () => { await renderSuShi(); }, 5000);
 
 </script>>

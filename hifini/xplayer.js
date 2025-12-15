@@ -14,6 +14,7 @@ function randomInt(min, max) { // min and max included
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 async function json2array(url4gJson){
+  console.log(`Fetching JSON from ${url4gJson} ...`);
   try {
     const response = await fetch(url4gJson);
     if (!response.ok) {
@@ -22,7 +23,7 @@ async function json2array(url4gJson){
     const jsonData =  response.json();
     return jsonData;
   } catch (error) {
-    console.error("Fetching JSON failed:", error);
+    console.error(`Fetching JSON (${url4gJson}) failed:`, error);
     throw error;
   }
 }
@@ -31,28 +32,68 @@ function getParam(name, defaultValue) {
   const value = urlParams.get(name);
   return value !== null ? value : defaultValue;
 }
-
+//------------------------------------------------------------------------------
+async function idb2dataArray(idb, storeName){
+  return new Promise((resolve, reject) => {
+    const transaction = idb.transaction([storeName], "readonly");
+    const objectStore = transaction.objectStore(storeName);
+    const allRecords = [];
+    objectStore.openCursor().onsuccess = (event) => {
+      const cursor = event.target.result;
+      if (cursor) {
+        let oneRow=cursor.value;
+        //get basename and remove ext, i.e., get the stem
+        let stem=oneRow['fileName'].split('/').pop().replace(/\.[^/.]+$/, '');
+        oneRow['artist']=stem.split('__')[0];
+        oneRow['name']=stem.split('__')[1];
+        oneRow['size']=formatAsByteString(oneRow['size']);
+        allRecords.push(oneRow);
+        cursor.continue();
+      } else {
+        // All records have been retrieved, now convert to JSON
+        try {
+          // const jsonString = JSON.stringify(allRecords, null, 2); // null, 2 for pretty printing
+          // resolve(jsonString);
+          resolve(allRecords);
+        } catch (error) {
+          reject(`Error converting allRecords to JSON: ${error}`);
+        }
+      }
+    };
+    transaction.onerror = (event) => {
+      reject(`Transaction error: ${event.target.errorCode}`);
+    }; 
+  });
+}
+function url4jsonArray(jsonArray){
+  const blob = new Blob([jsonArray], { type: 'application/json' });
+  return URL.createObjectURL(blob);
+}
+//------------------------------------------------------------------------------
 let ap=null;
+const storeName = 'xLocalIDB';
+const storeKey = 'fileName';
+const dbVersion = 1;
+var idb4songs = null;
 //------------------------------------------------------------------------------
 var songIdx=randomInt(0, max10);
-var jsonUrl=`https://storage.googleapis.com/xpub/playlists/${String(songIdx).padStart(8, '0')}.json`;
 var nSongs=getParam('x', 10);
 if(nSongs>10){
   songIdx=0;
-  jsonUrl=`https://storage.googleapis.com/xpub/playlists/all.json`;
+  pPlaylist= 'all';
+  // jsonUrl=`https://storage.googleapis.com/xpub/playlists/all.json`;
 }
 
 var pPlaylist=getParam('playlist', 'random');
-let preDefinedPlaylists=['pop_chinese', 'rock_international', 'jazz_classical', 'electronic_dance', 'lofi_cafe', 'random']; //, 'offline'];
-if(!preDefinedPlaylists.includes(pPlaylist)){
-  pPlaylist='random';
-  // jsonUrl=`https://storage.googleapis.com/xpub/playlists/${pPlaylist}.json`;
+console.log(`Initial pPlaylist=${pPlaylist}`);
+// let preDefinedPlaylists=['pop_chinese', 'rock_international', 'jazz_classical', 'electronic_dance', 'lofi_cafe', 'offline'];
+if(pPlaylist=='random'){
+  pPlaylist=String(songIdx).padStart(8, '0');  
 }
-// elif(pPlaylist=='offline'){
-//   jsonUrl='';
-// }
+var jsonUrl=`https://storage.googleapis.com/xpub/playlists/${pPlaylist}.json`;
 
 var pRandom=getParam('r', 1);
+if(pRandom==0)songIdx=0; //disable random if pRandom==0
 console.log(`nSongs=${nSongs} , jsonUrl=${jsonUrl} , pRandom=${pRandom} , pPlaylist=${pPlaylist} `);
 //------------------------------------------------------------------------------
 function getRandomSubarray(arr, size) {
@@ -91,11 +132,7 @@ function safeObjClick(aObj){
   }
   }
 }
-////////////////////////////////////////////////////////////////////////////////
-const storeName = 'xLocalIDB';
-const storeKey = 'fileName';
-const dbVersion = 1;
-var idb4songs = null;
+//------------------------------------------------------------------------------
 // Methods for Storage quota
 /**
  * @desc Gets the current storage quota
@@ -346,10 +383,14 @@ async function url4cachedSong(doFetchAudio, fn, sUrl, song){
 }
 async function updateSong2local(song, doFetchAudio){
   let sUrl=song.url;
-  let uo=new URL(sUrl);    
-  let fn=decodeURI(uo.pathname);
-  console.log(`trying to cache song '${fn}'`);
-  song.url=await url4cachedSong(doFetchAudio, fn, sUrl, song);
+  try{
+    let uo=new URL(sUrl);    
+    let fn=decodeURI(uo.pathname);
+    console.log(`trying to cache song '${fn}'`);
+    song.url=await url4cachedSong(doFetchAudio, fn, sUrl, song);
+  }catch(error){
+    console.error(`Failed to update song URL to local indexedDB for '${song.name}':`, error);
+  }
   return song;
 }
 //manage local cache DB for songs
@@ -390,7 +431,11 @@ window.addEventListener('load', async () => {
   idb4songs = await openIndexedDb('xdb4songs', [{ name: storeName, keyPath: storeKey }]);
   //https://blog.q-bit.me/how-to-use-indexeddb-to-store-images-and-other-files-in-your-browser/          
   // renderAvailableImagesFromDb();    
-	  
+  if(pPlaylist=='offline'){//highest priority to load from local IndexedDB
+    let allSongs=await idb2dataArray(idb4songs, storeName);    
+    console.log('allSongs from IndexedDB: ', allSongs);
+    jsonUrl=url4jsonArray(JSON.stringify(allSongs));  
+  }  
   //make player
   json2array(jsonUrl).then(async songs => {
     if(songs){      
@@ -406,7 +451,7 @@ window.addEventListener('load', async () => {
         mini: false, 
         autoplay: false, // Google Chrome disabled autoplay and require user's response before auto playback
         loop: 'all',
-        order: songIdx !== 0 ? 'random' : 'list' ,
+        order:  (pRandom!=0)||(songIdx!=0) ? 'random' : 'list' ,
         volume: 1,
         preload: 'none', //'auto', 'none'
         showlrc: false, //

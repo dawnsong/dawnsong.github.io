@@ -32,7 +32,7 @@ date: 2025-11-28
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0" id='cover4yiGongZi'>
-        {% include figure.liquid loading="eager" path="https://storage.googleapis.com/xmusic/yiGongZi/suShi/%E6%84%8F%E5%85%AC%E5%AD%90%E8%AC%9B%E8%98%87%E8%BB%BE_039.jpg?x-goog-signature=4226ab38946a51ffa59f8504a2a1636956d23699d57f393e896acf36d2ee27106d3f554d8ddac55fa3aa3a64e8bbd07d276dfb9c7f36efcf092680eceefaec6dbd9347495af481eab295f682e1a00b45a6a9155c02cf2721a54c1b477348344fdf9d46581d7fa538002998151c0c97dd1c20b582c20262f7aa5a63021ca9e916d2b5f7c7f238f6a0139a762932e3e17ee4ceee3c820f6c41b33415dab5d6ce9790d6a025777ee6b7a5b641221a90b59339e55b8d7ab5a0c8f369f36f134f3aa8c4a1b8c3679950ea26e73515fe4754db704066fdcefb5f90a507a94868090625a13c39c42bbaf61886e1f54accb4c3e9e0b6832b1200abcaa213b9f689c932a8&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credential=xgcloud%40sigma-smile-436711-b7.iam.gserviceaccount.com%2F20251128%2Fus-east5%2Fstorage%2Fgoog4_request&x-goog-date=20251128T234837Z&x-goog-expires=604800&x-goog-signedheaders=host" title="yiGongZi_suShi_039" class="img-fluid rounded z-depth-1" %}
+        {% include figure.liquid loading="eager" path="assets/img/yiGongZi_suShi/意公子講蘇軾_001__蘇東坡式的自嘲：活著的意義，也許是那些渡過人生低谷時的經歷【意公子】-mJyZ8-o4gsg.jpg" title="yiGongZi_suShi_039" class="img-fluid rounded z-depth-1" %}
     </div>
 </div>
 <div class="caption">
@@ -127,10 +127,12 @@ async function idb2dataArray(idb, storeName){
 
 function updateCoverImg(rIdx){
   let srcSet=document.querySelector(".responsive-img-srcset");//only need to change the responsive source set!        
-  currentSong=ap.list.audios[rIdx];
-  srcSet.srcset=currentSong.cover;
-  let divCaption=document.querySelector("div.caption");
-  divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
+  let currentSong=ap.list.audios[rIdx];
+  if(srcSet && currentSong &&  currentSong.cover){
+    srcSet.srcset=currentSong.cover;
+    let divCaption=document.querySelector("div.caption");
+    divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
+  }
 }
 
 const currentUrl = new URL(window.location.href);
@@ -141,7 +143,7 @@ console.log(cpPlaylist);
 if(cpPlaylist=='random'){//no param has been passed yet to set the xPlayer
     params.set('playlist','yiGongZi_suShi');
     params.set('x','100');
-    params.set('pRandom','0');
+    params.set('r','0');
     currentUrl.search = params.toString();
     console.log(currentUrl);
     window.location.href = currentUrl.toString();    
