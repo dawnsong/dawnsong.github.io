@@ -235,12 +235,13 @@ function renderData2table(arr4tb){
   btnRm.addEventListener('click', async () => {    
     var selectedRowsData = dt.rows({ selected: true }).data();
     // Iterate through the selected rows' data
-    selectedRowsData.each(async function(rowData) {
-        console.log(rowData); // rowData will contain the data for each selected row        
-        // if(await keyExists(rowData['fileName'])>0){
-        await rmKey(rowData['fileName']);
-        // }
-    });
+    if(confirm(`Removing cached ${selectedRowsData.length} songs?`))
+      selectedRowsData.each(async function(rowData) {
+          console.log(rowData); // rowData will contain the data for each selected row        
+          // if(await keyExists(rowData['fileName'])>0){
+          await rmKey(rowData['fileName']);
+          // }
+      });
     //reload the data
     let data4tbl=await idb2dataArray(idb4songs, storeName);          
     renderData2table(data4tbl);
