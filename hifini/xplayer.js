@@ -76,6 +76,9 @@ const storeKey = 'fileName';
 const dbVersion = 1;
 var idb4songs = null;
 //------------------------------------------------------------------------------
+var pPlaylist=getParam('playlist', 'random');
+console.log(`Initial pPlaylist=${pPlaylist}`);
+
 var songIdx=randomInt(0, 457);
 var nSongs=getParam('x', 10);
 if(nSongs>10){
@@ -84,12 +87,11 @@ if(nSongs>10){
   // jsonUrl=`https://storage.googleapis.com/xpub/playlists/all.json`;
 }
 
-var pPlaylist=getParam('playlist', 'random');
-console.log(`Initial pPlaylist=${pPlaylist}`);
 // let preDefinedPlaylists=['pop_chinese', 'rock_international', 'jazz_classical', 'electronic_dance', 'lofi_cafe', 'offline'];
 if(pPlaylist=='random'){
   pPlaylist=String(songIdx).padStart(8, '0');  
 }
+
 var jsonUrl=`https://storage.googleapis.com/xpub/playlists/${pPlaylist}.json`;
 
 var pRandom=getParam('r', 1);
