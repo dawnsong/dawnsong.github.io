@@ -76,7 +76,7 @@ const storeKey = 'fileName';
 const dbVersion = 1;
 var idb4songs = null;
 //------------------------------------------------------------------------------
-var songIdx=randomInt(0, max10);
+var songIdx=randomInt(0, 457);
 var nSongs=getParam('x', 10);
 if(nSongs>10){
   songIdx=0;
