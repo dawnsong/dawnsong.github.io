@@ -467,7 +467,7 @@ window.addEventListener('load', async () => {
         narrow: false,
         //fixed: true, //<!--吸底模式 -->  
         mini: false, 
-        autoplay: false, // Google Chrome disabled autoplay and require user's response before auto playback
+        autoplay: true, // Google Chrome disabled autoplay and require user's response before auto playback; set to true when a song cannot be played to see if this will not need user's click to trigger play
         loop: 'all',
         order:  (pRandom!=0)||(songIdx!=0) ? 'random' : 'list' ,
         volume: 1,
