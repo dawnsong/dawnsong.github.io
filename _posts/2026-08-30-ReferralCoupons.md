@@ -3,7 +3,7 @@ layout: post
 title: Referral Coupons
 date: 2026-08-30 06:38:16
 description: Google Fi, Ubigi
-tags: Google Fi, Ubigi
+tags: "Google Fi", Ubigi, RedPocket
 categories: Coupons
 ---
 
