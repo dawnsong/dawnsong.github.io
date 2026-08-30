@@ -93,15 +93,15 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/digests/offline/?playlist=offline&x=100&r=1";
               },
-            },{id: "post-referral-coupons",
+            },{id: "post-",
         
-          title: "Referral Coupons",
+          title: "",
         
-        description: "Google Fi, Ubigi",
+        description: "",
         section: "Posts",
         handler: () => {
           
-            window.location.href = "/blog/2026/ReferralCoupons/";
+            window.location.href = "/blog/2026/2026-08-30-ReferralCoupons/";
           
         },
       },{id: "post-a-post-with-plotly-js",
