@@ -7,9 +7,9 @@ tags: Google Fi, Ubigi
 categories: Coupons
 ---
 
-## [Google Fi](https://fi.google.com): Give \$60 get \$60
+## [Google Fi](https://fi.google.com): Give `$`60 get `$`60
 
-Earn \$60 for each friend who joins Fi and they'll get \$60 too. You can receive a total of up to \$600 in credits from referrals [Terms](https://fi.google.com/about/referral-tos):
+Earn `$`60 for each friend who joins Fi and they'll get `$`60 too. You can receive a total of up to \$600 in credits from referrals [Terms](https://fi.google.com/about/referral-tos):
 
 > FXW9M0 .
 
@@ -19,6 +19,6 @@ Earn \$60 for each friend who joins Fi and they'll get \$60 too. You can receive
 
 > 1D5FY7ZK .
 
-## [RedPocket](https://www.redpocket.com/): Get \$25. Give \$25.
+## [RedPocket](https://www.redpocket.com/): Get `$`25. Give `$`25.
 
 > .
