@@ -19,7 +19,6 @@ Earn \$60 for each friend who joins Fi and they'll get \$60 too. You can receive
 
 > 1D5FY7ZK .
 
-
 ## [RedPocket](https://www.redpocket.com/): Get \$25. Give \$25.
 
->  .
+> .
