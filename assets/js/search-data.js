@@ -93,9 +93,9 @@ ninja.data = [{
               handler: () => {
                 window.location.href = "/digests/offline/?playlist=offline&x=100&r=1";
               },
-            },{id: "post-referral-coupons",
+            },{id: "post-mobile-phone-wireless-plan-39-s-referral-coupons",
         
-          title: "Referral Coupons",
+          title: "Mobile Phone wireless Plan&#39;s Referral Coupons",
         
         description: "Google Fi, Ubigi",
         section: "Posts",
