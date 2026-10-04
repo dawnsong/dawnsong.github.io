@@ -26,6 +26,7 @@ Earn `$`60 for each friend who joins Fi and they'll get `$`60 too. You can recei
 > 8FAF 1025 F8B5 36D2 .
 
 ## [Meta Muse](https://muse.ai/join): 30 uses left.
+
 Check out Muse, your personal AI agent. Redeem my code in Settings within 48 hours of joining and we'll both get 1 billion Muse tokens.
 
 > Code: JQLEAX
