@@ -472,7 +472,7 @@ window.addEventListener('load', async () => {
         order:  (pRandom!=0)||(songIdx!=0) ? 'random' : 'list' ,
         volume: 1,
         preload: 'none', //'auto', 'none'
-        showlrc: false, //
+        showlrc: true, //
         lrctype:3,
         mutex: true,
         theme:  '#ad7a86', // '#b7daff',  //'#0a0a0f',//
