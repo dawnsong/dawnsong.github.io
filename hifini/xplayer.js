@@ -199,7 +199,7 @@ async function fetchAudioAsBlob(url) {
   try {
     // 1. Fetch the data from the remote server
     const response = await fetch(url);    
-    if (!response.ok) {
+    if (response.status !== 200) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }    
     // 2. Read the body of the response as a Blob
@@ -223,29 +223,24 @@ function saveAudioBlob(blob, key, song) {
   // 1. Initiate a transaction for read/write
   const transaction = idb4songs.transaction([storeName], 'readwrite');
   const store = transaction.objectStore(storeName);
-  // // 2. Prepare the object to save
-  delete song["url"]; //remove url from meta to save space
+  // 2. Prepare the object to save
+  const meta = { ...song };
+  // delete meta.url;
   const audioRecord = {
     [storeKey]: key, // Primary key
     data: blob,
     timestamp: Date.now(),
     mimeType: blob.type,
     size: blob.size,
-    meta: song || {}
+    meta
   };
   // 3. Request to add/put the object into the store
-  const request = store.put(audioRecord);
-  // const request = store.put(blob, key);
-  request.onsuccess = () => {
-    console.log(`Audio Blob (${blob.size}) for key '${key}' saved successfully!`);
-  };
-  request.onerror = (event) => {
-    console.error(`Error saving Blob/${key}:`, event.target.error);
-  };
-  // Optional: Listen for the transaction to complete
-  transaction.oncomplete = () => {
-    console.log('Transaction completed.');
-  };
+  return new Promise((resolve, reject) => {
+    store.put(audioRecord);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error || new Error('IndexedDB transaction aborted'));
+  });
 }
 async function saveUrlContentToDB(url, key, song) {
   console.log(`Start downloading for ${key}: ${url}`);  
@@ -255,9 +250,10 @@ async function saveUrlContentToDB(url, key, song) {
     console.log(`Download complete. Blob size: ${audioBlob.size} bytes`);
     // 2. Save the resulting Blob into IndexedDB
     // (Assumes 'db' is already initialized by calling openDB() earlier)
-    saveAudioBlob(audioBlob, key, song);    
+    await saveAudioBlob(audioBlob, key, song);
   } catch (error) {
     console.error(`Failed to fetch&save audio for key/url ${key}/${url}:`, error);
+    throw error;
   }
 }
 
@@ -369,6 +365,8 @@ async function url4cachedSong(doFetchAudio, fn, sUrl, song){
     if(await keyExists(fn)>0){
       aBlob=await loadAudioBlob(fn); 
       if(aBlob != null ){return URL.createObjectURL(aBlob.data);}//already cached
+    }else if(doFetchAudio) {
+      throw new Error(`Audio '${fn}' was not found in IndexedDB after download`);
     }else {
       return sUrl; //not cached, return original url
     }
@@ -380,8 +378,15 @@ async function url4cachedSong(doFetchAudio, fn, sUrl, song){
     throw new Error('I cannot believe aBlob is still null, sth wrong with the downloading !!!'); 
   }catch(error){
     console.error(`Failed to load/download audio for song fn|sUrl '${fn}'|${sUrl}:`, error);
-    return sUrl;
+    throw error;
   }
+}
+async function resolveAudio(song){
+  const sourceUrl = song.url;
+  const parsedUrl = new URL(sourceUrl, window.location.href);
+  const fileName = decodeURI(parsedUrl.pathname);
+  if (!fileName.match(/\/xmusic.*/i)) return sourceUrl;
+  return url4cachedSong(true, fileName, sourceUrl, song);
 }
 async function updateSong2local(song, doFetchAudio){
   let sUrl=song.url;
@@ -458,10 +463,10 @@ window.addEventListener('load', async () => {
   json2array(jsonUrl).then(async songs => {
     if(songs){      
       // console.log('Parsed songs: ', songs);
-      songs=updateSongsURL2local(getRandomSubarray(songs, nSongs), 0); //do not download and cache songs automatically, can be triggered by user click PLAY later      
+      songs=getRandomSubarray(songs, nSongs);
       console.log('Cached songs: ', songs);
       //----------------------------------
-      ap = new APlayer({
+      ap = new XPlayer({
         id4audio: 'xAudio',
         element: document.getElementById('xplayer'),
         narrow: false,
@@ -477,17 +482,12 @@ window.addEventListener('load', async () => {
         mutex: true,
         theme:  '#ad7a86', // '#b7daff',  //'#0a0a0f',//
         listFolded: true,
+        resolveAudio,
         audio: songs
       });
       //change pixabay images once a song switched
       ap.audio.addEventListener('play', async function(){ 
-        //download and cache songs when user clicks PLAY for the first time
-        // songs=await updateSongsURL2local(ap.list.audios, nSongs<=10 ); //ignore when all.json is loaded
-        // ap.list.audios=songs;
-        //only cacche the current playing song
         let currentSong=ap.list.audios[ap.list.index];
-        // ap.list.audios[ap.list.index]=await updateSong2local(currentSong, nSongs<=10);
-        await updateSong2local(currentSong, nSongs>0);
 
         var sName  =currentSong.name;
         var sArtist=currentSong.artist;
