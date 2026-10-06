@@ -72,8 +72,9 @@ function url4jsonArray(jsonArray){
 //------------------------------------------------------------------------------
 let ap=null;
 const storeName = 'xLocalIDB';
+const favoritesStoreName = 'xSongFavorites';
 const storeKey = 'fileName';
-const dbVersion = 1;
+const dbVersion = 2;
 var idb4songs = null;
 //------------------------------------------------------------------------------
 var pPlaylist=getParam('playlist', 'random');
@@ -345,6 +346,45 @@ async function loadAudioBlob(key) {
     req.onerror = () => reject(req.error);
   });
 }
+function getSongFavoriteKey(song) {
+  if (song.favKey) return song.favKey;
+  if (song.fileName) return song.fileName;
+  try {
+    const parsedUrl = new URL(song.sourceUrl || song.url, window.location.href);
+    if (parsedUrl.protocol !== 'blob:') return decodeURI(parsedUrl.pathname);
+  } catch (error) {
+    console.warn(`Cannot derive favorite key for '${song.name}':`, error);
+  }
+  return `${song.artist || ''}__${song.name || ''}`;
+}
+function loadSongFavorite(key) {
+  return new Promise((resolve, reject) => {
+    const transaction = idb4songs.transaction([favoritesStoreName], 'readonly');
+    const request = transaction.objectStore(favoritesStoreName).get(key);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+function saveSongFavorite(key, fav) {
+  return new Promise((resolve, reject) => {
+    const transaction = idb4songs.transaction([favoritesStoreName], 'readwrite');
+    transaction.objectStore(favoritesStoreName).put({
+      [storeKey]: key,
+      fav: !!fav,
+      updatedAt: Date.now()
+    });
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error || new Error('Favorite transaction aborted'));
+  });
+}
+async function hydrateSongFavorites(songs) {
+  await Promise.all(songs.map(async (song) => {
+    song.favKey = getSongFavoriteKey(song);
+    const favorite = await loadSongFavorite(song.favKey);
+    if (favorite) song.fav = favorite.fav;
+  }));
+}
 // Example Usage:
 // keyExists('session_456_audio').then(exists => {
 //   console.log('Key exists:', exists); // true or false
@@ -413,7 +453,7 @@ function updateSongsURL2local(songs, doFetchAudio){
 
 const openIndexedDb = (dbName, stores) => {
 	return new Promise((resolve, reject) => {
-		const req = indexedDB.open(dbName, 1);
+    const req = indexedDB.open(dbName, dbVersion);
 		req.onerror = (event) => {
       // console.error("indexedDB error: " + event.target.errorCode);
 			reject(event.target.error);
@@ -425,17 +465,22 @@ const openIndexedDb = (dbName, stores) => {
 		};
 		req.onupgradeneeded = (event) => {
 			stores.forEach((store) => {
-				const objectStore = event.target.result.createObjectStore(store.name, {
-					keyPath: store.keyPath,
-				});
-				objectStore.createIndex(store.keyPath, store.keyPath, { unique: true });
+        if (!event.target.result.objectStoreNames.contains(store.name)) {
+          const objectStore = event.target.result.createObjectStore(store.name, {
+            keyPath: store.keyPath,
+          });
+          objectStore.createIndex(store.keyPath, store.keyPath, { unique: true });
+        }
 			});
 		};
 	});
 };
 // Attach IndexedDB - creation to the window.onload - event
 window.addEventListener('load', async () => {	
-  idb4songs = await openIndexedDb('xdb4songs', [{ name: storeName, keyPath: storeKey }]);
+  idb4songs = await openIndexedDb('xdb4songs', [
+    { name: storeName, keyPath: storeKey },
+    { name: favoritesStoreName, keyPath: storeKey }
+  ]);
   //https://blog.q-bit.me/how-to-use-indexeddb-to-store-images-and-other-files-in-your-browser/          
   // renderAvailableImagesFromDb();    
   if(pPlaylist=='offline'){//highest priority to load from local IndexedDB
@@ -449,6 +494,7 @@ window.addEventListener('load', async () => {
       let oneSong={};
       oneSong['name']=song['name'];
       oneSong['artist']=song['artist'];
+      oneSong['fileName']=song['fileName'];
       oneSong['url']='';
       oneSong['cover']='';
       oneSong['meta']=song['meta'] || {};
@@ -464,6 +510,7 @@ window.addEventListener('load', async () => {
     if(songs){      
       // console.log('Parsed songs: ', songs);
       songs=getRandomSubarray(songs, nSongs);
+      await hydrateSongFavorites(songs);
       console.log('Cached songs: ', songs);
       //----------------------------------
       ap = new XPlayer({
@@ -484,6 +531,11 @@ window.addEventListener('load', async () => {
         listFolded: true,
         resolveAudio,
         audio: songs
+      });
+      ap.on('favoritechange', ({ audio, fav }) => {
+        saveSongFavorite(audio.favKey, fav).catch(error => {
+          console.error(`Failed to save favorite state for '${audio.name}':`, error);
+        });
       });
       //change pixabay images once a song switched
       ap.audio.addEventListener('play', async function(){ 
