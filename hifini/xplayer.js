@@ -478,7 +478,7 @@ window.addEventListener('load', async () => {
         volume: 1,
         preload: 'none', //'auto', 'none'
         showlrc: true, //
-        lrctype:3,
+        lrcType:3,
         mutex: true,
         theme:  '#ad7a86', // '#b7daff',  //'#0a0a0f',//
         listFolded: true,
