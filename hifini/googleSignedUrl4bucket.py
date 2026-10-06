@@ -1,5 +1,5 @@
 
-def mkGoogleSignedUrl4download(blob_name, bucket_name='xmusic', credentials='xgcloud.json'):
+def mkGoogleSignedUrl4download(blob_name, bucket_name='xmusic', credentials='xgcloud.json', nweeks2expire=1):
     import datetime
     from google.cloud import storage
     """Generates a v4 signed URL for downloading a blob.
@@ -20,7 +20,7 @@ def mkGoogleSignedUrl4download(blob_name, bucket_name='xmusic', credentials='xgc
     url = blob.generate_signed_url(
         version="v4",
         # This URL is valid for 1 weeks/max allowed!
-        expiration=datetime.timedelta(weeks=1),
+        expiration=datetime.timedelta(weeks=nweeks2expire),
         # Allow GET requests using this URL.
         method="GET",
     )
