@@ -365,13 +365,21 @@ function loadSongFavorite(key) {
     request.onerror = () => reject(request.error);
   });
 }
-function saveSongFavorite(key, fav) {
+function loadAllSongFavorites() {
+  return new Promise((resolve, reject) => {
+    const transaction = idb4songs.transaction([favoritesStoreName], 'readonly');
+    const request = transaction.objectStore(favoritesStoreName).getAll();
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
+  });
+}
+function saveSongFavorite(key, fav, updatedAt = Date.now()) {
   return new Promise((resolve, reject) => {
     const transaction = idb4songs.transaction([favoritesStoreName], 'readwrite');
     transaction.objectStore(favoritesStoreName).put({
       [storeKey]: key,
       fav: !!fav,
-      updatedAt: Date.now()
+      updatedAt
     });
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
@@ -385,6 +393,33 @@ async function hydrateSongFavorites(songs) {
     if (favorite) song.fav = favorite.fav;
   }));
 }
+async function syncFavoritesToCloud(user) {
+  const cloud = window.xPlayerFavoriteCloud;
+  if (!cloud) return [];
+  const mergedFavorites = await cloud.sync(await loadAllSongFavorites(), user);
+  await Promise.all(mergedFavorites.map(favorite =>
+    saveSongFavorite(favorite.key, favorite.fav, favorite.updatedAt)
+  ));
+  const favoritesByKey = new Map(mergedFavorites.map(favorite => [favorite.key, favorite.fav]));
+  if (ap && ap.list) {
+    ap.list.audios.forEach(song => {
+      if (favoritesByKey.has(song.favKey)) song.fav = favoritesByKey.get(song.favKey);
+    });
+    const currentSong = ap.list.audios[ap.list.index];
+    const favoriteButton = ap.template.pic.querySelector('.aplayer-fav-button');
+    if (currentSong && favoriteButton) {
+      favoriteButton.classList.toggle('aplayer-fav-active', !!currentSong.fav);
+      favoriteButton.setAttribute('aria-pressed', String(!!currentSong.fav));
+      favoriteButton.setAttribute('aria-label', currentSong.fav ? 'Remove from favorites' : 'Add to favorites');
+    }
+  }
+  return mergedFavorites;
+}
+window.syncFavoritesToCloud = async function () {
+  const cloud = await window.xPlayerFavoriteCloudReady;
+  if (!cloud) throw new Error('Firebase favorites sync is not configured.');
+  return syncFavoritesToCloud(await cloud.ensureSignedIn());
+};
 // Example Usage:
 // keyExists('session_456_audio').then(exists => {
 //   console.log('Key exists:', exists); // true or false
@@ -481,6 +516,10 @@ window.addEventListener('load', async () => {
     { name: storeName, keyPath: storeKey },
     { name: favoritesStoreName, keyPath: storeKey }
   ]);
+  const favoriteCloud = await window.xPlayerFavoriteCloudReady;
+  if (favoriteCloud) await favoriteCloud.ready;
+  const signedInUser = favoriteCloud && favoriteCloud.currentUser();
+  if (signedInUser) await syncFavoritesToCloud(signedInUser);
   //https://blog.q-bit.me/how-to-use-indexeddb-to-store-images-and-other-files-in-your-browser/          
   // renderAvailableImagesFromDb();    
   if(pPlaylist=='offline'){//highest priority to load from local IndexedDB
@@ -533,8 +572,15 @@ window.addEventListener('load', async () => {
         audio: songs
       });
       ap.on('favoritechange', ({ audio, fav }) => {
+        const cloud = window.xPlayerFavoriteCloud;
+        const signInPromise = cloud ? cloud.ensureSignedIn() : Promise.resolve(null);
         saveSongFavorite(audio.favKey, fav).catch(error => {
           console.error(`Failed to save favorite state for '${audio.name}':`, error);
+        });
+        signInPromise.then(user => {
+          if (user) return syncFavoritesToCloud(user);
+        }).catch(error => {
+          console.error(`Favorite saved locally, but cloud sync failed for '${audio.name}':`, error);
         });
       });
       //change pixabay images once a song switched
