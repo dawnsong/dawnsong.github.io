@@ -1,0 +1,1 @@
+export const firebaseConfig={apiKey:"AIzaSyB0wyN3qQcoyT6003mFMum_USto0IUnbP4",authDomain:"device-streaming-34085edb.firebaseapp.com",projectId:"device-streaming-34085edb",storageBucket:"device-streaming-34085edb.firebasestorage.app",messagingSenderId:"360958812603",appId:"1:360958812603:web:fcfcb367c4268c2348a49e",measurementId:"G-BTG985SW5L"};
