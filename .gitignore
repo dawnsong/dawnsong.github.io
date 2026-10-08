@@ -27,3 +27,4 @@ __*cache*
 xgcloud.json
 *hifini*
 .ssl/*.key
+bin/download_firebase_favorites.py
