@@ -3,7 +3,7 @@ import { firebaseConfig } from './firebase-config.js';
 const sdkVersion = '11.10.0';
 const fullSyncIntervalMs = 30 * 24 * 60 * 60 * 1000;
 const syncOverlapMs = 60 * 1000;
-const syncPageSize = 250;
+const syncPageSize = 100;
 const yieldToMain = () => new Promise(resolve => setTimeout(resolve, 0));
 
 async function initializeFavoriteCloud() {
@@ -83,16 +83,15 @@ async function initializeFavoriteCloud() {
     const localByKey = new Map();
     localRecords.forEach(record => {
       if (!record.fileName) return;
-      localByKey.set(record.fileName, {
-        key: record.fileName,
-        fav: !!record.fav,
-        updatedAt: Number(record.updatedAt) || 0
-      });
+      const updatedAt = Number(record.updatedAt) || 0;
+      if (!fullSync && updatedAt <= lastSyncAt - syncOverlapMs) return;
+      record.key = record.fileName;
+      record.fav = !!record.fav;
+      record.updatedAt = updatedAt;
+      record.syncPending = fullSync || updatedAt > lastSyncAt;
+      localByKey.set(record.key, record);
     });
-    const localWrites = new Map();
-    localByKey.forEach(record => {
-      if (fullSync || record.updatedAt > lastSyncAt) localWrites.set(record.key, record);
-    });
+    localRecords.length = 0;
     let cursor = null;
     let remoteBytes = 2;
     let remoteCount = 0;
@@ -120,10 +119,15 @@ async function initializeFavoriteCloud() {
         remoteBytes += new TextEncoder().encode(JSON.stringify(remote)).length + (remoteCount ? 1 : 0);
         remoteCount++;
         const local = localByKey.get(remote.key);
-        if (local && remote.updatedAt >= local.updatedAt) localWrites.delete(remote.key);
-        if (!local || remote.updatedAt > local.updatedAt) {
-          localByKey.set(remote.key, remote);
+        if (!local) {
           pageUpdates.push(remote);
+        } else if (remote.updatedAt > local.updatedAt) {
+          localByKey.delete(remote.key);
+          pageUpdates.push(remote);
+        } else if (remote.updatedAt >= local.updatedAt) {
+          localByKey.delete(remote.key);
+        } else {
+          local.syncPending = true;
         }
       });
 
@@ -134,35 +138,49 @@ async function initializeFavoriteCloud() {
     }
 
     remoteBytes = remoteCount ? remoteBytes : 2;
-    const localWriteRecords = Array.from(localWrites.values());
-    for (let offset = 0; offset < localWriteRecords.length; offset += 450) {
+    const localWriteRecords = [];
+    let uploadedCount = 0;
+    let uploadBytes = 2;
+    const commitLocalWrites = async () => {
+      if (!localWriteRecords.length) return;
       const batch = firestoreSdk.writeBatch(firestore);
-      const batchRecords = localWriteRecords.slice(offset, offset + 450);
-      await Promise.all(batchRecords.map(async record => {
+      await Promise.all(localWriteRecords.map(async record => {
         const documentId = await favoriteDocumentId(record.key);
+        const cloudRecord = {
+          key: record.key,
+          fav: !!record.fav,
+          updatedAt: Math.trunc(record.updatedAt)
+        };
         batch.set(
           firestoreSdk.doc(favoriteCollection, documentId),
-          { ...record, updatedAt: Math.trunc(record.updatedAt) },
+          cloudRecord,
           { merge: true }
         );
+        uploadBytes += new TextEncoder().encode(JSON.stringify(cloudRecord)).length + (uploadedCount ? 1 : 0);
+        uploadedCount++;
       }));
       await batch.commit();
+      localWriteRecords.length = 0;
       await yieldToMain();
+    };
+
+    for (const record of localByKey.values()) {
+      if (!record.syncPending) continue;
+      localWriteRecords.push(record);
+      if (localWriteRecords.length === 450) await commitLocalWrites();
     }
+    await commitLocalWrites();
 
     const completedAt = Date.now();
     const nextCheckpoint = {
       lastSyncAt: completedAt,
       lastFullSyncAt: fullSync ? completedAt : Number(checkpoint.lastFullSyncAt)
     };
-    const uploadBytes = localWriteRecords.reduce((total, record) => {
-      return total + new TextEncoder().encode(JSON.stringify(record)).length;
-    }, localWriteRecords.length ? localWriteRecords.length - 1 + 2 : 2);
-    console.info(`Favorites ${fullSync ? 'full' : 'delta'} sync: ${remoteCount} downloaded (~${remoteBytes} B), ${localWriteRecords.length} uploaded (~${uploadBytes} B)`);
+    console.info(`Favorites ${fullSync ? 'full' : 'delta'} sync: ${remoteCount} downloaded (~${remoteBytes} B), ${uploadedCount} uploaded (~${uploadBytes} B)`);
 
     return {
       downloadedCount: remoteCount,
-      uploadedCount: localWriteRecords.length,
+      uploadedCount,
       checkpoint: nextCheckpoint
     };
   }
