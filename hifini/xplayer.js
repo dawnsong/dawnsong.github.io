@@ -386,6 +386,23 @@ function saveSongFavorite(key, fav, updatedAt = Date.now()) {
     transaction.onabort = () => reject(transaction.error || new Error('Favorite transaction aborted'));
   });
 }
+function saveSongFavorites(favorites) {
+  if (!favorites.length) return Promise.resolve();
+  const transaction = idb4songs.transaction([favoritesStoreName], 'readwrite');
+  const objectStore = transaction.objectStore(favoritesStoreName);
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error || new Error('Favorite transaction aborted'));
+    favorites.forEach(favorite => {
+      objectStore.put({
+        [storeKey]: favorite.key,
+        fav: !!favorite.fav,
+        updatedAt: Number(favorite.updatedAt) || 0
+      });
+    });
+  });
+}
 async function hydrateSongFavorites(songs) {
   await Promise.all(songs.map(async (song) => {
     song.favKey = getSongFavoriteKey(song);
@@ -396,10 +413,10 @@ async function hydrateSongFavorites(songs) {
 async function syncFavoritesToCloud(user) {
   const cloud = window.xPlayerFavoriteCloud;
   if (!cloud) return [];
-  const mergedFavorites = await cloud.sync(await loadAllSongFavorites(), user);
-  await Promise.all(mergedFavorites.map(favorite =>
-    saveSongFavorite(favorite.key, favorite.fav, favorite.updatedAt)
-  ));
+  const syncResult = await cloud.sync(await loadAllSongFavorites(), user);
+  await saveSongFavorites(syncResult.localUpdates);
+  cloud.completeSync(user, syncResult.checkpoint);
+  const mergedFavorites = syncResult.favorites;
   const favoritesByKey = new Map(mergedFavorites.map(favorite => [favorite.key, favorite.fav]));
   if (ap && ap.list) {
     ap.list.audios.forEach(song => {
@@ -519,7 +536,6 @@ window.addEventListener('load', async () => {
   const favoriteCloud = await window.xPlayerFavoriteCloudReady;
   if (favoriteCloud) await favoriteCloud.ready;
   const signedInUser = favoriteCloud && favoriteCloud.currentUser();
-  if (signedInUser) await syncFavoritesToCloud(signedInUser);
   //https://blog.q-bit.me/how-to-use-indexeddb-to-store-images-and-other-files-in-your-browser/          
   // renderAvailableImagesFromDb();    
   if(pPlaylist=='offline'){//highest priority to load from local IndexedDB
@@ -571,6 +587,13 @@ window.addEventListener('load', async () => {
         resolveAudio,
         audio: songs
       });
+      if (signedInUser) {
+        window.setTimeout(() => {
+          syncFavoritesToCloud(signedInUser).catch(error => {
+            console.error('Failed to sync favorites after sign-in:', error);
+          });
+        }, 0);
+      }
       ap.on('favoritechange', async ({ audio, fav }) => {
         try {
           await saveSongFavorite(audio.favKey, fav);

@@ -1,6 +1,8 @@
 import { firebaseConfig } from './firebase-config.js';
 
 const sdkVersion = '11.10.0';
+const fullSyncIntervalMs = 30 * 24 * 60 * 60 * 1000;
+const syncOverlapMs = 60 * 1000;
 
 async function initializeFavoriteCloud() {
   if (!firebaseConfig || !firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId || !firebaseConfig.appId) {
@@ -41,38 +43,78 @@ async function initializeFavoriteCloud() {
     return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
   }
 
+  function syncCheckpointKey(userId) {
+    return `xplayer-favorites-sync:${userId}`;
+  }
+
+  function loadSyncCheckpoint(userId) {
+    try {
+      return JSON.parse(localStorage.getItem(syncCheckpointKey(userId)) || '{}');
+    } catch (error) {
+      console.warn('Could not read favorites sync checkpoint:', error);
+      return {};
+    }
+  }
+
+  function completeSync(user, checkpoint) {
+    try {
+      localStorage.setItem(syncCheckpointKey(user.uid), JSON.stringify(checkpoint));
+    } catch (error) {
+      console.warn('Could not save favorites sync checkpoint:', error);
+    }
+  }
+
   async function sync(localRecords, user) {
     const signedInUser = user || await ensureSignedIn();
     const favoriteCollection = firestoreSdk.collection(firestore, 'users', signedInUser.uid, 'favorites');
-    const snapshot = await firestoreSdk.getDocs(favoriteCollection);
-    const merged = new Map();
-
-    for (const record of localRecords) {
-      if (!record.fileName) continue;
-      merged.set(record.fileName, {
+    const checkpoint = loadSyncCheckpoint(signedInUser.uid);
+    const startedAt = Date.now();
+    const lastSyncAt = Number(checkpoint.lastSyncAt) || 0;
+    const fullSync = !checkpoint.lastFullSyncAt || startedAt - checkpoint.lastFullSyncAt >= fullSyncIntervalMs;
+    const remoteQuery = fullSync
+      ? favoriteCollection
+      : firestoreSdk.query(
+        favoriteCollection,
+        firestoreSdk.where('updatedAt', '>', Math.max(0, lastSyncAt - syncOverlapMs))
+      );
+    const snapshot = await firestoreSdk.getDocs(remoteQuery);
+    const localByKey = new Map();
+    localRecords.forEach(record => {
+      if (!record.fileName) return;
+      localByKey.set(record.fileName, {
         key: record.fileName,
         fav: !!record.fav,
         updatedAt: Number(record.updatedAt) || 0
       });
-    }
+    });
+    const remoteByKey = new Map();
+    const localUpdates = [];
+    const merged = new Map(localByKey);
 
     snapshot.forEach(document => {
       const record = document.data();
       if (!record.key) return;
-      const local = merged.get(record.key);
-      if (!local || (Number(record.updatedAt) || 0) > local.updatedAt) {
-        merged.set(record.key, {
-          key: record.key,
-          fav: !!record.fav,
-          updatedAt: Number(record.updatedAt) || 0
-        });
+      const remote = {
+        key: record.key,
+        fav: !!record.fav,
+        updatedAt: Number(record.updatedAt) || 0
+      };
+      remoteByKey.set(remote.key, remote);
+      const local = merged.get(remote.key);
+      if (!local || remote.updatedAt > local.updatedAt) {
+        merged.set(remote.key, remote);
+        localUpdates.push(remote);
       }
     });
 
-    const records = Array.from(merged.values());
-    for (let offset = 0; offset < records.length; offset += 450) {
+    const localWrites = Array.from(localByKey.values()).filter(record => {
+      if (!fullSync && record.updatedAt <= lastSyncAt) return false;
+      const remote = remoteByKey.get(record.key);
+      return !remote || record.updatedAt > remote.updatedAt;
+    });
+    for (let offset = 0; offset < localWrites.length; offset += 450) {
       const batch = firestoreSdk.writeBatch(firestore);
-      const batchRecords = records.slice(offset, offset + 450);
+      const batchRecords = localWrites.slice(offset, offset + 450);
       await Promise.all(batchRecords.map(async record => {
         const documentId = await favoriteDocumentId(record.key);
         batch.set(
@@ -83,14 +125,29 @@ async function initializeFavoriteCloud() {
       }));
       await batch.commit();
     }
-    return records;
+
+    const completedAt = Date.now();
+    const nextCheckpoint = {
+      lastSyncAt: completedAt,
+      lastFullSyncAt: fullSync ? completedAt : Number(checkpoint.lastFullSyncAt)
+    };
+    const remoteBytes = new TextEncoder().encode(JSON.stringify(Array.from(remoteByKey.values()))).length;
+    const uploadBytes = new TextEncoder().encode(JSON.stringify(localWrites)).length;
+    console.info(`Favorites ${fullSync ? 'full' : 'delta'} sync: ${remoteByKey.size} downloaded (~${remoteBytes} B), ${localWrites.length} uploaded (~${uploadBytes} B)`);
+
+    return {
+      favorites: Array.from(merged.values()),
+      localUpdates,
+      checkpoint: nextCheckpoint
+    };
   }
 
   return {
     ready: authReady,
     currentUser: () => currentUser,
     ensureSignedIn,
-    sync
+    sync,
+    completeSync
   };
 }
 
