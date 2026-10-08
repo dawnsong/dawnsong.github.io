@@ -25,7 +25,7 @@ module Jekyll
       end
 
       def file_content
-        local_file_name = file_name.slice((file_name.index('assets/')..-1))
+        local_file_name = file_name.sub(%r{\A/}, '')
         File.read(local_file_name)
       end
 

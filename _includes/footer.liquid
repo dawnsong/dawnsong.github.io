@@ -1,5 +1,6 @@
 {% capture footer_contents %}
   {{ site.footer_text }}
+  <script defer src="{{ '/hifini/xplayer.js' | relative_url | bust_file_cache }}"></script>
   &copy; Copyright {{ site.time | date: '%Y' }}
   {{ site.first_name }}
   {{ site.middle_name }}
