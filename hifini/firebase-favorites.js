@@ -35,8 +35,15 @@ async function initializeFavoriteCloud() {
     resolveAuthReady(user);
   });
 
-  function ensureSignedIn() {
+  function ensureSignedIn(returnUrl) {
     if (currentUser) return Promise.resolve(currentUser);
+    if (returnUrl) {
+      const targetUrl = new URL(returnUrl, window.location.href);
+      if (targetUrl.origin !== window.location.origin) {
+        throw new Error('Firebase sign-in return URL must stay on this site.');
+      }
+      window.history.replaceState(window.history.state, '', targetUrl);
+    }
     return authSdk.signInWithRedirect(auth, provider);
   }
 

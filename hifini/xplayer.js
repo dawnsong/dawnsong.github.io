@@ -611,7 +611,9 @@ window.addEventListener('load', async () => {
         const cloud = window.xPlayerFavoriteCloud;
         if (!cloud) return;
         try {
-          const user = await cloud.ensureSignedIn();
+          const returnUrl = new URL(window.location.href);
+          returnUrl.searchParams.set('playlist', pPlaylist);
+          const user = await cloud.ensureSignedIn(returnUrl);
           if (user) await syncFavoritesToCloud(user);
         } catch (error) {
           console.error(`Favorite saved locally, but cloud sync failed for '${audio.name}':`, error);
