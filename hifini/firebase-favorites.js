@@ -91,10 +91,12 @@ async function initializeFavoriteCloud() {
       record.syncPending = fullSync || updatedAt > lastSyncAt;
       localByKey.set(record.key, record);
     });
+    console.info(`Favorites ${fullSync ? 'full' : 'delta'} sync started: ${localByKey.size} local records`);
     localRecords.length = 0;
     let cursor = null;
     let remoteBytes = 2;
     let remoteCount = 0;
+    let pageNumber = 0;
 
     while (true) {
       const constraints = fullSync
@@ -107,6 +109,7 @@ async function initializeFavoriteCloud() {
       constraints.push(firestoreSdk.limit(syncPageSize));
       const page = await firestoreSdk.getDocs(firestoreSdk.query(favoriteCollection, ...constraints));
       const pageUpdates = [];
+      pageNumber++;
 
       page.forEach(document => {
         const record = document.data();
@@ -132,6 +135,7 @@ async function initializeFavoriteCloud() {
       });
 
       if (pageUpdates.length) await applyRemoteUpdates(pageUpdates);
+      console.info(`Favorites sync page ${pageNumber}: ${page.size} records, ${remoteCount} total`);
       if (page.size < syncPageSize) break;
       cursor = page.docs[page.docs.length - 1];
       await yieldToMain();
