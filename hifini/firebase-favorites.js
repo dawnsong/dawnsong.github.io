@@ -66,7 +66,7 @@ async function initializeFavoriteCloud() {
     }
   }
 
-  async function sync(localRecords, user) {
+  async function sync(localRecords, user, applyRemoteUpdates = async () => {}) {
     const signedInUser = user || await ensureSignedIn();
     const favoriteCollection = firestoreSdk.collection(firestore, 'users', signedInUser.uid, 'favorites');
     const checkpoint = loadSyncCheckpoint(signedInUser.uid);
@@ -82,11 +82,13 @@ async function initializeFavoriteCloud() {
         updatedAt: Number(record.updatedAt) || 0
       });
     });
-    const remoteByKey = new Map();
-    const localUpdates = [];
-    const merged = new Map(localByKey);
+    const localWrites = new Map();
+    localByKey.forEach(record => {
+      if (fullSync || record.updatedAt > lastSyncAt) localWrites.set(record.key, record);
+    });
     let cursor = null;
     let remoteBytes = 2;
+    let remoteCount = 0;
 
     while (true) {
       const constraints = fullSync
@@ -98,6 +100,7 @@ async function initializeFavoriteCloud() {
       if (cursor) constraints.push(firestoreSdk.startAfter(cursor));
       constraints.push(firestoreSdk.limit(syncPageSize));
       const page = await firestoreSdk.getDocs(firestoreSdk.query(favoriteCollection, ...constraints));
+      const pageUpdates = [];
 
       page.forEach(document => {
         const record = document.data();
@@ -107,29 +110,27 @@ async function initializeFavoriteCloud() {
           fav: !!record.fav,
           updatedAt: Number(record.updatedAt) || 0
         };
-        remoteBytes += new TextEncoder().encode(JSON.stringify(remote)).length + (remoteByKey.size ? 1 : 0);
-        remoteByKey.set(remote.key, remote);
-        const local = merged.get(remote.key);
+        remoteBytes += new TextEncoder().encode(JSON.stringify(remote)).length + (remoteCount ? 1 : 0);
+        remoteCount++;
+        const local = localByKey.get(remote.key);
+        if (local && remote.updatedAt >= local.updatedAt) localWrites.delete(remote.key);
         if (!local || remote.updatedAt > local.updatedAt) {
-          merged.set(remote.key, remote);
-          localUpdates.push(remote);
+          localByKey.set(remote.key, remote);
+          pageUpdates.push(remote);
         }
       });
 
+      if (pageUpdates.length) await applyRemoteUpdates(pageUpdates);
       if (page.size < syncPageSize) break;
       cursor = page.docs[page.docs.length - 1];
       await yieldToMain();
     }
 
-    remoteBytes = remoteByKey.size ? remoteBytes : 2;
-    const localWrites = Array.from(localByKey.values()).filter(record => {
-      if (!fullSync && record.updatedAt <= lastSyncAt) return false;
-      const remote = remoteByKey.get(record.key);
-      return !remote || record.updatedAt > remote.updatedAt;
-    });
-    for (let offset = 0; offset < localWrites.length; offset += 450) {
+    remoteBytes = remoteCount ? remoteBytes : 2;
+    const localWriteRecords = Array.from(localWrites.values());
+    for (let offset = 0; offset < localWriteRecords.length; offset += 450) {
       const batch = firestoreSdk.writeBatch(firestore);
-      const batchRecords = localWrites.slice(offset, offset + 450);
+      const batchRecords = localWriteRecords.slice(offset, offset + 450);
       await Promise.all(batchRecords.map(async record => {
         const documentId = await favoriteDocumentId(record.key);
         batch.set(
@@ -147,14 +148,14 @@ async function initializeFavoriteCloud() {
       lastSyncAt: completedAt,
       lastFullSyncAt: fullSync ? completedAt : Number(checkpoint.lastFullSyncAt)
     };
-    const uploadBytes = localWrites.reduce((total, record) => {
+    const uploadBytes = localWriteRecords.reduce((total, record) => {
       return total + new TextEncoder().encode(JSON.stringify(record)).length;
-    }, localWrites.length ? localWrites.length - 1 + 2 : 2);
-    console.info(`Favorites ${fullSync ? 'full' : 'delta'} sync: ${remoteByKey.size} downloaded (~${remoteBytes} B), ${localWrites.length} uploaded (~${uploadBytes} B)`);
+    }, localWriteRecords.length ? localWriteRecords.length - 1 + 2 : 2);
+    console.info(`Favorites ${fullSync ? 'full' : 'delta'} sync: ${remoteCount} downloaded (~${remoteBytes} B), ${localWriteRecords.length} uploaded (~${uploadBytes} B)`);
 
     return {
-      favorites: Array.from(merged.values()),
-      localUpdates,
+      downloadedCount: remoteCount,
+      uploadedCount: localWriteRecords.length,
       checkpoint: nextCheckpoint
     };
   }

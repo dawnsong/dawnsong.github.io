@@ -419,12 +419,10 @@ async function hydrateSongFavorites(songs) {
 async function syncFavoritesToCloud(user) {
   const cloud = window.xPlayerFavoriteCloud;
   if (!cloud) return [];
-  const syncResult = await cloud.sync(await loadAllSongFavorites(), user);
-  await saveSongFavorites(syncResult.localUpdates);
-  cloud.completeSync(user, syncResult.checkpoint);
-  const mergedFavorites = syncResult.favorites;
-  const favoritesByKey = new Map(mergedFavorites.map(favorite => [favorite.key, favorite.fav]));
-  if (ap && ap.list) {
+  const applyRemoteUpdates = async (favorites) => {
+    await saveSongFavorites(favorites);
+    if (!ap || !ap.list) return;
+    const favoritesByKey = new Map(favorites.map(favorite => [favorite.key, favorite.fav]));
     ap.list.audios.forEach(song => {
       if (favoritesByKey.has(song.favKey)) song.fav = favoritesByKey.get(song.favKey);
     });
@@ -435,8 +433,10 @@ async function syncFavoritesToCloud(user) {
       favoriteButton.setAttribute('aria-pressed', String(!!currentSong.fav));
       favoriteButton.setAttribute('aria-label', currentSong.fav ? 'Remove from favorites' : 'Add to favorites');
     }
-  }
-  return mergedFavorites;
+  };
+  const syncResult = await cloud.sync(await loadAllSongFavorites(), user, applyRemoteUpdates);
+  cloud.completeSync(user, syncResult.checkpoint);
+  return syncResult;
 }
 window.syncFavoritesToCloud = async function () {
   const cloud = await window.xPlayerFavoriteCloudReady;
