@@ -386,22 +386,28 @@ function saveSongFavorite(key, fav, updatedAt = Date.now()) {
     transaction.onabort = () => reject(transaction.error || new Error('Favorite transaction aborted'));
   });
 }
-function saveSongFavorites(favorites) {
-  if (!favorites.length) return Promise.resolve();
-  const transaction = idb4songs.transaction([favoritesStoreName], 'readwrite');
-  const objectStore = transaction.objectStore(favoritesStoreName);
-  return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-    transaction.onabort = () => reject(transaction.error || new Error('Favorite transaction aborted'));
-    favorites.forEach(favorite => {
-      objectStore.put({
-        [storeKey]: favorite.key,
-        fav: !!favorite.fav,
-        updatedAt: Number(favorite.updatedAt) || 0
+async function saveSongFavorites(favorites) {
+  const writePageSize = 250;
+  for (let offset = 0; offset < favorites.length; offset += writePageSize) {
+    const page = favorites.slice(offset, offset + writePageSize);
+    const transaction = idb4songs.transaction([favoritesStoreName], 'readwrite');
+    const objectStore = transaction.objectStore(favoritesStoreName);
+    await new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error || new Error('Favorite transaction aborted'));
+      page.forEach(favorite => {
+        objectStore.put({
+          [storeKey]: favorite.key,
+          fav: !!favorite.fav,
+          updatedAt: Number(favorite.updatedAt) || 0
+        });
       });
     });
-  });
+    if (offset + writePageSize < favorites.length) {
+      await new Promise(resolve => window.setTimeout(resolve, 0));
+    }
+  }
 }
 async function hydrateSongFavorites(songs) {
   await Promise.all(songs.map(async (song) => {

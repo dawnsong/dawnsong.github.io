@@ -3,6 +3,8 @@ import { firebaseConfig } from './firebase-config.js';
 const sdkVersion = '11.10.0';
 const fullSyncIntervalMs = 30 * 24 * 60 * 60 * 1000;
 const syncOverlapMs = 60 * 1000;
+const syncPageSize = 250;
+const yieldToMain = () => new Promise(resolve => setTimeout(resolve, 0));
 
 async function initializeFavoriteCloud() {
   if (!firebaseConfig || !firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId || !firebaseConfig.appId) {
@@ -71,13 +73,6 @@ async function initializeFavoriteCloud() {
     const startedAt = Date.now();
     const lastSyncAt = Number(checkpoint.lastSyncAt) || 0;
     const fullSync = !checkpoint.lastFullSyncAt || startedAt - checkpoint.lastFullSyncAt >= fullSyncIntervalMs;
-    const remoteQuery = fullSync
-      ? favoriteCollection
-      : firestoreSdk.query(
-        favoriteCollection,
-        firestoreSdk.where('updatedAt', '>', Math.max(0, lastSyncAt - syncOverlapMs))
-      );
-    const snapshot = await firestoreSdk.getDocs(remoteQuery);
     const localByKey = new Map();
     localRecords.forEach(record => {
       if (!record.fileName) return;
@@ -90,23 +85,43 @@ async function initializeFavoriteCloud() {
     const remoteByKey = new Map();
     const localUpdates = [];
     const merged = new Map(localByKey);
+    let cursor = null;
+    let remoteBytes = 2;
 
-    snapshot.forEach(document => {
-      const record = document.data();
-      if (!record.key) return;
-      const remote = {
-        key: record.key,
-        fav: !!record.fav,
-        updatedAt: Number(record.updatedAt) || 0
-      };
-      remoteByKey.set(remote.key, remote);
-      const local = merged.get(remote.key);
-      if (!local || remote.updatedAt > local.updatedAt) {
-        merged.set(remote.key, remote);
-        localUpdates.push(remote);
-      }
-    });
+    while (true) {
+      const constraints = fullSync
+        ? [firestoreSdk.orderBy(firestoreSdk.documentId())]
+        : [
+          firestoreSdk.where('updatedAt', '>', Math.max(0, lastSyncAt - syncOverlapMs)),
+          firestoreSdk.orderBy('updatedAt')
+        ];
+      if (cursor) constraints.push(firestoreSdk.startAfter(cursor));
+      constraints.push(firestoreSdk.limit(syncPageSize));
+      const page = await firestoreSdk.getDocs(firestoreSdk.query(favoriteCollection, ...constraints));
 
+      page.forEach(document => {
+        const record = document.data();
+        if (!record.key) return;
+        const remote = {
+          key: record.key,
+          fav: !!record.fav,
+          updatedAt: Number(record.updatedAt) || 0
+        };
+        remoteBytes += new TextEncoder().encode(JSON.stringify(remote)).length + (remoteByKey.size ? 1 : 0);
+        remoteByKey.set(remote.key, remote);
+        const local = merged.get(remote.key);
+        if (!local || remote.updatedAt > local.updatedAt) {
+          merged.set(remote.key, remote);
+          localUpdates.push(remote);
+        }
+      });
+
+      if (page.size < syncPageSize) break;
+      cursor = page.docs[page.docs.length - 1];
+      await yieldToMain();
+    }
+
+    remoteBytes = remoteByKey.size ? remoteBytes : 2;
     const localWrites = Array.from(localByKey.values()).filter(record => {
       if (!fullSync && record.updatedAt <= lastSyncAt) return false;
       const remote = remoteByKey.get(record.key);
@@ -124,6 +139,7 @@ async function initializeFavoriteCloud() {
         );
       }));
       await batch.commit();
+      await yieldToMain();
     }
 
     const completedAt = Date.now();
@@ -131,8 +147,9 @@ async function initializeFavoriteCloud() {
       lastSyncAt: completedAt,
       lastFullSyncAt: fullSync ? completedAt : Number(checkpoint.lastFullSyncAt)
     };
-    const remoteBytes = new TextEncoder().encode(JSON.stringify(Array.from(remoteByKey.values()))).length;
-    const uploadBytes = new TextEncoder().encode(JSON.stringify(localWrites)).length;
+    const uploadBytes = localWrites.reduce((total, record) => {
+      return total + new TextEncoder().encode(JSON.stringify(record)).length;
+    }, localWrites.length ? localWrites.length - 1 + 2 : 2);
     console.info(`Favorites ${fullSync ? 'full' : 'delta'} sync: ${remoteByKey.size} downloaded (~${remoteBytes} B), ${localWrites.length} uploaded (~${uploadBytes} B)`);
 
     return {
