@@ -176,7 +176,7 @@ kramdown:
       start_line: 1
 
 # Includes & excludes
-include: ["_pages", "_scripts", "_digests"]
+include: ["_pages", "_scripts", "_digests", "__"]
 exclude:
   - bin/
   - CONTRIBUTING.md
@@ -240,7 +240,7 @@ sass:
 # -----------------------------------------------------------------------------
 jekyll-minifier:
   compress_javascript: false # set to false since we are using terser as the js minifier
-  exclude: ["robots.txt", "assets/js/search/*.js"]
+  exclude: ["robots.txt", "assets/js/search/*.js", "__/auth/*", "__/firebase/init.json"]
 
 # -----------------------------------------------------------------------------
 # Terser
