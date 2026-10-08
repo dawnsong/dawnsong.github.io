@@ -455,7 +455,7 @@ async function url4cachedSong(doFetchAudio, fn, sUrl, song){
   let aBlob=null;
   try{
     if(await keyExists(fn)==0) { 
-      console.log(`Audio not cached yet for '${fn}', will download and cache it now if ${doFetchAudio}>0`);
+      console.log(`Audio is not cached for '${fn}'; ${doFetchAudio ? 'caching before playback' : 'streaming from the source'}.`);
       if(doFetchAudio){ 
         await saveUrlContentToDB(sUrl, fn, song);
       }
@@ -484,7 +484,7 @@ async function resolveAudio(song){
   const parsedUrl = new URL(sourceUrl, window.location.href);
   const fileName = decodeURI(parsedUrl.pathname);
   if (!fileName.match(/\/xmusic.*/i)) return sourceUrl;
-  return url4cachedSong(true, fileName, sourceUrl, song);
+  return url4cachedSong(false, fileName, sourceUrl, song);
 }
 async function updateSong2local(song, doFetchAudio){
   let sUrl=song.url;
