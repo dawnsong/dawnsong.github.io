@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - "assets/**"
+      - "__/**"
       - "_sass/**"
       - "_scripts/**"
       - "**.bib"
@@ -36,6 +37,7 @@ on:
       - main
     paths:
       - "assets/**"
+      - "__/**"
       - "_sass/**"
       - "_scripts/**"
       - "**.bib"
@@ -94,6 +96,7 @@ jobs:
           pip3 install --upgrade nbconvert
           export JEKYLL_ENV=production
           bundle exec jekyll build
+          touch _site/.nojekyll
       - name: Purge unused CSS 🧹
         run: |
           npm install -g purgecss

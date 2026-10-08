@@ -9,18 +9,28 @@
 
 //   // Your web app's Firebase configuration
 //   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  export const firebaseConfig = {
-    apiKey: "AIzaSyB0wyN3qQcoyT6003mFMum_USto0IUnbP4",
-    authDomain: "dawnsong.github.io",
-    projectId: "device-streaming-34085edb",
-    storageBucket: "device-streaming-34085edb.firebasestorage.app",
-    messagingSenderId: "360958812603",
-    appId: "1:360958812603:web:fcfcb367c4268c2348a49e",
-    measurementId: "G-BTG985SW5L"
-  };
+  // export const firebaseConfig = {
+  //   apiKey: "AIzaSyB0wyN3qQcoyT6003mFMum_USto0IUnbP4",
+  //   authDomain: "dawnsong.github.io",
+  //   projectId: "device-streaming-34085edb",
+  //   storageBucket: "device-streaming-34085edb.firebasestorage.app",
+  //   messagingSenderId: "360958812603",
+  //   appId: "1:360958812603:web:fcfcb367c4268c2348a49e",
+  //   measurementId: "G-BTG985SW5L"
+  // };
 
 //   // Initialize Firebase
 //   const app = initializeApp(firebaseConfig);
 //   const analytics = getAnalytics(app);
 // </script>
 // export const firebaseConfig = null;
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+export const firebaseConfig = {
+  apiKey: "AIzaSyB0wyN3qQcoyT6003mFMum_USto0IUnbP4",
+  authDomain: "device-streaming-34085edb.firebaseapp.com",
+  projectId: "device-streaming-34085edb",
+  storageBucket: "device-streaming-34085edb.firebasestorage.app",
+  messagingSenderId: "360958812603",
+  appId: "1:360958812603:web:fcfcb367c4268c2348a49e",
+  measurementId: "G-BTG985SW5L"
+};
