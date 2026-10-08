@@ -3,11 +3,11 @@
 <head>
 <meta name=viewport content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<script type="text/javascript" src="iframe.min.js"></script>
+<script type="text/javascript" src="/__/auth/experiments.min.js"></script>
+<script type="text/javascript" src="/__/auth/handler.min.js"></script>
 <script type="text/javascript" nonce="firebase-auth-helper">
-if (window.fireauth && fireauth.iframe && fireauth.iframe.AuthRelay) {
-  fireauth.iframe.AuthRelay.initialize();
-}
+var POST_BODY = '{{POST_BODY}}';
+fireauth.oauthhelper.widget.initialize();
 </script>
 </head>
 <body>
