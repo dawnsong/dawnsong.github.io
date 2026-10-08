@@ -16,6 +16,7 @@ async function initializeFavoriteCloud() {
   ]);
   const app = appSdk.initializeApp(firebaseConfig, 'xplayer-favorites');
   const auth = authSdk.getAuth(app);
+  await authSdk.setPersistence(auth, authSdk.browserLocalPersistence);
   const firestore = firestoreSdk.getFirestore(app);
   const provider = new authSdk.GoogleAuthProvider();
   let currentUser = auth.currentUser;
