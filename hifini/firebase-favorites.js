@@ -31,10 +31,7 @@ async function initializeFavoriteCloud() {
 
   function ensureSignedIn() {
     if (currentUser) return Promise.resolve(currentUser);
-    return authSdk.signInWithPopup(auth, provider).then(result => {
-      currentUser = result.user;
-      return currentUser;
-    });
+    return authSdk.signInWithRedirect(auth, provider);
   }
 
   async function favoriteDocumentId(key) {

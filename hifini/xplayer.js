@@ -571,17 +571,22 @@ window.addEventListener('load', async () => {
         resolveAudio,
         audio: songs
       });
-      ap.on('favoritechange', ({ audio, fav }) => {
-        const cloud = window.xPlayerFavoriteCloud;
-        const signInPromise = cloud ? cloud.ensureSignedIn() : Promise.resolve(null);
-        saveSongFavorite(audio.favKey, fav).catch(error => {
+      ap.on('favoritechange', async ({ audio, fav }) => {
+        try {
+          await saveSongFavorite(audio.favKey, fav);
+        } catch (error) {
           console.error(`Failed to save favorite state for '${audio.name}':`, error);
-        });
-        signInPromise.then(user => {
-          if (user) return syncFavoritesToCloud(user);
-        }).catch(error => {
+          return;
+        }
+
+        const cloud = window.xPlayerFavoriteCloud;
+        if (!cloud) return;
+        try {
+          const user = await cloud.ensureSignedIn();
+          if (user) await syncFavoritesToCloud(user);
+        } catch (error) {
           console.error(`Favorite saved locally, but cloud sync failed for '${audio.name}':`, error);
-        });
+        }
       });
       //change pixabay images once a song switched
       ap.audio.addEventListener('play', async function(){ 
