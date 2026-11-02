@@ -547,7 +547,7 @@ async function hydrateSongFavorites(songs) {
     if (favorite) song.fav = favorite.fav;
   }));
 }
-async function syncFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios : [], priorityKey = '') {
+async function syncCurrentPlaylistFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios : [], priorityKey = '') {
   const operationId = ++favoriteOperationSequence;
   const startedAt = performance.now();
   const cloud = window.xPlayerFavoriteCloud;
@@ -646,7 +646,7 @@ window.syncFavoritesToCloud = function () {
       logFavoriteProgress(operationId, startedAt, 'explicit-sync-sign-in-started');
       const user = await withFavoriteTimeout(cloud.ensureSignedIn(), 'getting Firebase sign-in');
       logFavoriteProgress(operationId, startedAt, 'explicit-sync-authenticated');
-      return await syncFavoritesToCloud(user);
+      return await syncCurrentPlaylistFavoritesToCloud(user);
     } catch (error) {
       logFavoriteProgress(operationId, startedAt, 'explicit-sync-failed', {
         previousStage: window.xPlayerFavoriteSyncStatus?.stage || 'unknown',
