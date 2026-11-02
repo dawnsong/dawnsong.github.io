@@ -105,7 +105,7 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
   if (!records.length)
     return { downloadedCount: 0, uploadedCount: 0, remoteUpdates: [] };
 
-  console.log("[favorite-worker] sync-started", { songCount: records.length });
+  console.warn("[favorite-worker] sync-started", { songCount: records.length });
   const database = `projects/${encodeURIComponent(
     projectId
   )}/databases/(default)/documents`;
@@ -123,7 +123,7 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
       ).join("");
     })
   );
-  console.log("[favorite-worker] document-ids-ready", {
+  console.warn("[favorite-worker] document-ids-ready", {
     elapsedMs: Math.round(performance.now() - startedAt),
     count: documentIds.length,
   });
@@ -132,7 +132,7 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
     idToken,
     { documents: documentIds.map((id) => `${collection}/${id}`) }
   );
-  console.log("[favorite-worker] remote-read-completed", {
+  console.warn("[favorite-worker] remote-read-completed", {
     elapsedMs: Math.round(performance.now() - startedAt),
     responseBytes: new TextEncoder().encode(responseText).length,
   });
@@ -167,7 +167,7 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
   });
 
   if (writes.length) {
-    console.log("[favorite-worker] remote-write-started", {
+    console.warn("[favorite-worker] remote-write-started", {
       count: writes.length,
     });
     await requestJson(
@@ -188,12 +188,12 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
         })),
       }
     );
-    console.log("[favorite-worker] remote-write-completed", {
+    console.warn("[favorite-worker] remote-write-completed", {
       elapsedMs: Math.round(performance.now() - startedAt),
       count: writes.length,
     });
   }
-  console.log("[favorite-worker] sync-completed", {
+  console.warn("[favorite-worker] sync-completed", {
     elapsedMs: Math.round(performance.now() - startedAt),
     downloadedCount: remoteByDocumentId.size,
     uploadedCount: writes.length,
@@ -209,7 +209,7 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
 self.addEventListener("message", async (event) => {
   const { id, type, ...request } = event.data || {};
   if (type !== "sync") return;
-  console.info(`[favorite-worker:${id}] request-received`);
+  console.warn(`[favorite-worker:${id}] request-received`);
   try {
     const result = await syncFavorites(request);
     self.postMessage({ id, result });

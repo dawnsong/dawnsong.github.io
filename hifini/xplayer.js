@@ -167,11 +167,17 @@ function url4jsonArray(jsonArray){
 let ap=null;
 const favoriteChangesInProgress = new Set();
 let favoriteOperationSequence = 0;
+let explicitFavoriteSyncInProgress = false;
 function logFavoriteProgress(operationId, startedAt, stage, details = {}) {
-  console.log(`[favorite:${operationId}] ${stage}`, {
+  const progress = {
     elapsedMs: Math.round(performance.now() - startedAt),
     ...details
-  });
+  };
+  if (stage.includes('sync')) {
+    console.warn(`[favorite:${operationId}] ${stage}`, progress);
+  } else {
+    console.log(`[favorite:${operationId}] ${stage}`, progress);
+  }
 }
 function withFavoriteTimeout(promise, stage, timeoutMs = 20000) {
   let timeoutId;
@@ -556,6 +562,7 @@ async function syncFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios
   logFavoriteProgress(operationId, startedAt, 'cloud-sync-started', {
     songCount: uniqueSongs.length
   });
+  logFavoriteProgress(operationId, startedAt, 'sync-local-records-loading');
   const localRecords = await Promise.all(uniqueSongs.map(async song => {
     const favorite = await loadSongFavorite(song.favKey);
     return {
@@ -565,7 +572,7 @@ async function syncFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios
       exists: !!favorite
     };
   }));
-  logFavoriteProgress(operationId, startedAt, 'local-records-loaded', {
+  logFavoriteProgress(operationId, startedAt, 'sync-local-records-loaded', {
     songCount: localRecords.length
   });
   const syncResult = await cloud.sync(localRecords, user);
@@ -590,17 +597,21 @@ async function syncFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios
         favoriteButton.setAttribute('aria-label', currentSong.fav ? 'Remove from favorites' : 'Add to favorites');
       }
     }
-    logFavoriteProgress(operationId, startedAt, 'remote-favorites-applied', {
+    logFavoriteProgress(operationId, startedAt, 'sync-remote-favorites-applied', {
       count: syncResult.remoteUpdates.length
     });
   }
   return syncResult;
 }
 window.syncFavoritesToCloud = async function () {
+  if (explicitFavoriteSyncInProgress) {
+    throw new Error('A favorite sync is already in progress.');
+  }
+  explicitFavoriteSyncInProgress = true;
   const operationId = ++favoriteOperationSequence;
   const startedAt = performance.now();
-  logFavoriteProgress(operationId, startedAt, 'explicit-sync-auth-started');
   try {
+    logFavoriteProgress(operationId, startedAt, 'explicit-sync-auth-started');
     if (!window.xPlayerFavoriteCloudReady) {
       throw new Error('Firebase favorites module is not loaded on this page.');
     }
@@ -624,6 +635,8 @@ window.syncFavoritesToCloud = async function () {
       message: error.message || String(error)
     });
     throw error;
+  } finally {
+    explicitFavoriteSyncInProgress = false;
   }
 };
 // Example Usage:

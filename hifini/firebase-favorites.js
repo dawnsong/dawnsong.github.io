@@ -81,7 +81,9 @@ function initializeFavoriteCloud() {
         throw new Error('A favorites sync must contain no more than 10 songs.');
       }
       const signedInUser = user || await ensureSignedIn();
+      console.warn('[favorite-cloud] id-token-request-started');
       const idToken = await signedInUser.getIdToken();
+      console.warn('[favorite-cloud] id-token-ready');
       const id = ++nextRequestId;
       const requestStartedAt = performance.now();
       const result = new Promise((resolve, reject) => {
@@ -92,7 +94,7 @@ function initializeFavoriteCloud() {
         pendingRequests.set(id, { resolve, reject, timeoutId });
       });
       try {
-        console.log(`[favorite-cloud:${id}] worker-sync-posted`, {
+        console.warn(`[favorite-cloud:${id}] worker-sync-posted`, {
           songCount: localRecords.length
         });
         worker.postMessage({
@@ -110,7 +112,7 @@ function initializeFavoriteCloud() {
         throw error;
       }
       return result.then(syncResult => {
-        console.log(`[favorite-cloud:${id}] worker-sync-result`, {
+        console.warn(`[favorite-cloud:${id}] worker-sync-result`, {
           elapsedMs: Math.round(performance.now() - requestStartedAt),
           downloadedCount: syncResult.downloadedCount,
           uploadedCount: syncResult.uploadedCount
