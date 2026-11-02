@@ -75,6 +75,7 @@ function url4jsonArray(jsonArray){
 }
 //------------------------------------------------------------------------------
 let ap=null;
+const favoriteChangesInProgress = new Set();
 const storeName = 'xLocalIDB';
 const favoritesStoreName = 'xSongFavorites';
 const storeKey = 'fileName';
@@ -388,11 +389,10 @@ function updatePlaylistFavoriteButtons() {
   if (!ap || !ap.list || !ap.template.listOl) return;
   ap.list.audios.forEach((song, index) => {
     const row = ap.template.listOl.children[index];
-    const button = row && row.querySelector('.xplayer-list-fav-button');
-    if (!button) return;
-    button.classList.toggle('aplayer-fav-active', !!song.fav);
-    button.setAttribute('aria-pressed', String(!!song.fav));
-    button.setAttribute('aria-label', song.fav ? 'Remove from favorites' : 'Add to favorites');
+    const icon = row && row.querySelector('.xplayer-list-fav-button');
+    if (!icon) return;
+    icon.classList.toggle('aplayer-fav-active', !!song.fav);
+    icon.setAttribute('aria-label', song.fav ? 'Favorite' : 'Not favorite');
   });
 }
 function addPlaylistFavoriteButtons() {
@@ -401,34 +401,14 @@ function addPlaylistFavoriteButtons() {
     const row = listOl.children[index];
     const title = row && row.querySelector('.aplayer-list-title');
     if (!title || title.querySelector('.xplayer-list-fav-button')) return;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'xplayer-list-fav-button';
-    button.setAttribute('aria-label', song.fav ? 'Remove from favorites' : 'Add to favorites');
-    button.setAttribute('aria-pressed', String(!!song.fav));
-    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>';
-    title.appendChild(button);
+    const icon = document.createElement('span');
+    icon.className = 'xplayer-list-fav-button';
+    icon.setAttribute('role', 'img');
+    icon.setAttribute('aria-label', song.fav ? 'Favorite' : 'Not favorite');
+    icon.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>';
+    title.appendChild(icon);
   });
   updatePlaylistFavoriteButtons();
-  listOl.addEventListener('click', event => {
-    const button = event.target.closest('.xplayer-list-fav-button');
-    if (!button) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const row = button.closest('li');
-    const index = Array.prototype.indexOf.call(listOl.children, row);
-    const audio = ap.list.audios[index];
-    if (!audio) return;
-    audio.fav = !audio.fav;
-    updatePlaylistFavoriteButtons();
-    const currentFavoriteButton = ap.template.pic.querySelector('.aplayer-fav-button');
-    if (ap.list.index === index && currentFavoriteButton) {
-      currentFavoriteButton.classList.toggle('aplayer-fav-active', !!audio.fav);
-      currentFavoriteButton.setAttribute('aria-pressed', String(!!audio.fav));
-      currentFavoriteButton.setAttribute('aria-label', audio.fav ? 'Remove from favorites' : 'Add to favorites');
-    }
-    ap.events.trigger('favoritechange', { audio, index, fav: !!audio.fav });
-  });
 }
 async function saveSongFavorites(favorites) {
   const writePageSize = 250;
@@ -684,23 +664,31 @@ window.addEventListener('load', async () => {
         }, 0);
       }
       ap.on('favoritechange', async ({ audio, fav }) => {
+        updatePlaylistFavoriteButtons();
+        const favoriteKey = audio.favKey;
+        if (favoriteChangesInProgress.has(favoriteKey)) return;
+        favoriteChangesInProgress.add(favoriteKey);
+        const coverFavoriteButton = ap.template.pic.querySelector('.aplayer-fav-button');
+        if (coverFavoriteButton && ap.list.audios[ap.list.index] === audio) {
+          coverFavoriteButton.disabled = true;
+        }
         try {
           await saveSongFavorite(audio.favKey, fav);
+          const cloud = window.xPlayerFavoriteCloud;
+          if (cloud) {
+            const returnUrl = new URL(window.location.href);
+            returnUrl.searchParams.set('playlist', pPlaylist);
+            returnUrl.searchParams.set('xplayerSong', audio.favKey);
+            const user = await cloud.ensureSignedIn(returnUrl);
+            if (user) await syncFavoritesToCloud(user, [audio]);
+          }
         } catch (error) {
-          console.error(`Failed to save favorite state for '${audio.name}':`, error);
-          return;
-        }
-
-        const cloud = window.xPlayerFavoriteCloud;
-        if (!cloud) return;
-        try {
-          const returnUrl = new URL(window.location.href);
-          returnUrl.searchParams.set('playlist', pPlaylist);
-          returnUrl.searchParams.set('xplayerSong', audio.favKey);
-          const user = await cloud.ensureSignedIn(returnUrl);
-          if (user) await syncFavoritesToCloud(user, [audio]);
-        } catch (error) {
-          console.error(`Favorite saved locally, but cloud sync failed for '${audio.name}':`, error);
+          console.error(`Failed to save or sync favorite state for '${audio.name}':`, error);
+        } finally {
+          favoriteChangesInProgress.delete(favoriteKey);
+          if (coverFavoriteButton && ap.list.audios[ap.list.index] === audio) {
+            coverFavoriteButton.disabled = false;
+          }
         }
       });
       //change pixabay images once a song switched
