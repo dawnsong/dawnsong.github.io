@@ -167,7 +167,7 @@ function url4jsonArray(jsonArray){
 let ap=null;
 const favoriteChangesInProgress = new Set();
 let favoriteOperationSequence = 0;
-let explicitFavoriteSyncInProgress = false;
+let explicitFavoriteSyncPromise = null;
 function logFavoriteProgress(operationId, startedAt, stage, details = {}) {
   const progress = {
     elapsedMs: Math.round(performance.now() - startedAt),
@@ -603,41 +603,45 @@ async function syncFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios
   }
   return syncResult;
 }
-window.syncFavoritesToCloud = async function () {
-  if (explicitFavoriteSyncInProgress) {
-    throw new Error('A favorite sync is already in progress.');
+window.syncFavoritesToCloud = function () {
+  if (explicitFavoriteSyncPromise) {
+    console.warn('[favorite] explicit-sync-already-running; returning existing sync promise');
+    return explicitFavoriteSyncPromise;
   }
-  explicitFavoriteSyncInProgress = true;
   const operationId = ++favoriteOperationSequence;
   const startedAt = performance.now();
-  try {
-    logFavoriteProgress(operationId, startedAt, 'explicit-sync-auth-started');
-    if (!window.xPlayerFavoriteCloudReady) {
-      throw new Error('Firebase favorites module is not loaded on this page.');
+  const syncPromise = (async () => {
+    try {
+      logFavoriteProgress(operationId, startedAt, 'explicit-sync-auth-started');
+      if (!window.xPlayerFavoriteCloudReady) {
+        throw new Error('Firebase favorites module is not loaded on this page.');
+      }
+      const cloud = await withFavoriteTimeout(
+        window.xPlayerFavoriteCloudReady,
+        'waiting for Firebase initialization'
+      );
+      if (!cloud) {
+        throw new Error('Firebase favorites sync is not configured.');
+      }
+      await withFavoriteTimeout(cloud.ready, 'waiting for Firebase authentication state');
+      const user = await withFavoriteTimeout(cloud.ensureSignedIn(), 'getting Firebase sign-in');
+      logFavoriteProgress(operationId, startedAt, 'explicit-sync-authenticated');
+      return await withFavoriteTimeout(
+        syncFavoritesToCloud(user),
+        'syncing favorites',
+        35000
+      );
+    } catch (error) {
+      logFavoriteProgress(operationId, startedAt, 'explicit-sync-failed', {
+        message: error.message || String(error)
+      });
+      throw error;
     }
-    const cloud = await withFavoriteTimeout(
-      window.xPlayerFavoriteCloudReady,
-      'waiting for Firebase initialization'
-    );
-    if (!cloud) {
-      throw new Error('Firebase favorites sync is not configured.');
-    }
-    await withFavoriteTimeout(cloud.ready, 'waiting for Firebase authentication state');
-    const user = await withFavoriteTimeout(cloud.ensureSignedIn(), 'getting Firebase sign-in');
-    logFavoriteProgress(operationId, startedAt, 'explicit-sync-authenticated');
-    return await withFavoriteTimeout(
-      syncFavoritesToCloud(user),
-      'syncing favorites',
-      35000
-    );
-  } catch (error) {
-    logFavoriteProgress(operationId, startedAt, 'explicit-sync-failed', {
-      message: error.message || String(error)
-    });
-    throw error;
-  } finally {
-    explicitFavoriteSyncInProgress = false;
-  }
+  })();
+  explicitFavoriteSyncPromise = syncPromise.finally(() => {
+    explicitFavoriteSyncPromise = null;
+  });
+  return explicitFavoriteSyncPromise;
 };
 // Example Usage:
 // keyExists('session_456_audio').then(exists => {
