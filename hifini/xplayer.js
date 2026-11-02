@@ -76,6 +76,7 @@ function url4jsonArray(jsonArray){
 //------------------------------------------------------------------------------
 let ap=null;
 const favoriteChangesInProgress = new Set();
+let favoriteCloudSyncQueue = Promise.resolve();
 const storeName = 'xLocalIDB';
 const favoritesStoreName = 'xSongFavorites';
 const storeKey = 'fileName';
@@ -674,14 +675,19 @@ window.addEventListener('load', async () => {
         }
         try {
           await saveSongFavorite(audio.favKey, fav);
-          const cloud = window.xPlayerFavoriteCloud;
-          if (cloud) {
+          const syncTask = favoriteCloudSyncQueue.then(async () => {
+            const cloud = window.xPlayerFavoriteCloud;
+            if (!cloud) return;
             const returnUrl = new URL(window.location.href);
             returnUrl.searchParams.set('playlist', pPlaylist);
             returnUrl.searchParams.set('xplayerSong', audio.favKey);
             const user = await cloud.ensureSignedIn(returnUrl);
             if (user) await syncFavoritesToCloud(user, [audio]);
-          }
+          });
+          favoriteCloudSyncQueue = syncTask.catch(error => {
+            console.error(`Cloud sync failed for favorite '${audio.name}':`, error);
+          });
+          await favoriteCloudSyncQueue;
         } catch (error) {
           console.error(`Failed to save or sync favorite state for '${audio.name}':`, error);
         } finally {

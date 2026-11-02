@@ -32,21 +32,57 @@ function parseJsonResponses(text) {
 }
 
 async function requestJson(url, idToken, body) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${idToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const responseText = await response.text();
-  if (!response.ok) {
-    throw new Error(
-      `Firebase favorites request failed (${response.status}): ${responseText}`
-    );
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const maxResponseBytes = 64 * 1024;
+    const reader = response.body && response.body.getReader();
+    let responseText = "";
+    if (reader) {
+      const decoder = new TextDecoder();
+      let responseBytes = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        responseBytes += value.byteLength;
+        if (responseBytes > maxResponseBytes) {
+          await reader.cancel();
+          throw new Error("Firebase favorites response exceeded 64 KiB.");
+        }
+        responseText += decoder.decode(value, { stream: true });
+      }
+      responseText += decoder.decode();
+    } else {
+      const responseBuffer = await response.arrayBuffer();
+      if (responseBuffer.byteLength > maxResponseBytes) {
+        throw new Error("Firebase favorites response exceeded 64 KiB.");
+      }
+      responseText = new TextDecoder().decode(responseBuffer);
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Firebase favorites request failed (${response.status}): ${responseText.slice(0, 1000)}`
+      );
+    }
+    return responseText;
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("Firebase favorites request timed out.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return responseText;
 }
 
 async function syncFavorites({ projectId, userId, idToken, localRecords }) {
