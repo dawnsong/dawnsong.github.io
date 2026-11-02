@@ -33,7 +33,7 @@ function getParam(name, defaultValue) {
   return value !== null ? value : defaultValue;
 }
 //------------------------------------------------------------------------------
-async function idb2dataArray(idb, storeName){
+async function idb2dataArray(idb, storeName, limit = Infinity){
   return new Promise((resolve, reject) => {
     const transaction = idb.transaction([storeName], "readonly");
     const objectStore = transaction.objectStore(storeName);
@@ -41,6 +41,10 @@ async function idb2dataArray(idb, storeName){
     objectStore.openCursor().onsuccess = (event) => {
       const cursor = event.target.result;
       if (cursor) {
+        if (allRecords.length >= limit) {
+          resolve(allRecords);
+          return;
+        }
         let oneRow=cursor.value;
         //get basename and remove ext, i.e., get the stem
         let stem=oneRow['fileName'].split('/').pop().replace(/\.[^/.]+$/, '');
@@ -81,13 +85,11 @@ var pPlaylist=getParam('playlist', 'random');
 console.log(`Initial pPlaylist=${pPlaylist}`);
 
 var songIdx=randomInt(0, 457);
-var nSongs=getParam('x', 10);
+var requestedSongs = Number.parseInt(getParam('x', '10'), 10);
+var nSongs = Number.isFinite(requestedSongs) && requestedSongs > 0
+  ? Math.min(requestedSongs, 10)
+  : 10;
 var returnSongKey=getParam('xplayerSong', '');
-if(nSongs>10){
-  songIdx=0;
-  pPlaylist= 'all';
-  // jsonUrl=`https://storage.googleapis.com/xpub/playlists/all.json`;
-}
 
 // let preDefinedPlaylists=['pop_chinese', 'rock_international', 'jazz_classical', 'electronic_dance', 'lofi_cafe', 'offline'];
 if(pPlaylist=='random'){
@@ -555,7 +557,7 @@ window.addEventListener('load', async () => {
   //https://blog.q-bit.me/how-to-use-indexeddb-to-store-images-and-other-files-in-your-browser/          
   // renderAvailableImagesFromDb();    
   if(pPlaylist=='offline'){//highest priority to load from local IndexedDB
-    let allSongs=await idb2dataArray(idb4songs, storeName);
+    let allSongs=await idb2dataArray(idb4songs, storeName, nSongs);
     console.log('allSongs from IndexedDB: ', allSongs);    
     let resultSongs=Array(allSongs.length).fill({});
     let idx=0;
@@ -624,12 +626,14 @@ window.addEventListener('load', async () => {
         audio: songs
       });
       if (restoredSongIndex >= 0) ap.list.switch(restoredSongIndex);
-      if (signedInUser) {
+      if (signedInUser && returnSongKey) {
         window.setTimeout(() => {
-          syncFavoritesToCloud(signedInUser, ap.list.audios, returnSongKey).catch(error => {
+          const restoredSong = ap.list.audios.find(song => song.favKey === returnSongKey);
+          if (!restoredSong) return;
+          syncFavoritesToCloud(signedInUser, [restoredSong], returnSongKey).catch(error => {
             console.error('Failed to sync favorites after sign-in:', error);
           });
-        }, 10);
+        }, 0);
       }
       ap.on('favoritechange', async ({ audio, fav }) => {
         try {
