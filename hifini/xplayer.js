@@ -82,6 +82,7 @@ console.log(`Initial pPlaylist=${pPlaylist}`);
 
 var songIdx=randomInt(0, 457);
 var nSongs=getParam('x', 10);
+var returnSongKey=getParam('xplayerSong', '');
 if(nSongs>10){
   songIdx=0;
   pPlaylist= 'all';
@@ -100,16 +101,19 @@ if(pRandom==0)songIdx=0; //disable random if pRandom==0
 console.log(`nSongs=${nSongs} , jsonUrl=${jsonUrl} , pRandom=${pRandom} , pPlaylist=${pPlaylist} `);
 //------------------------------------------------------------------------------
 function getRandomSubarray(arr, size) {
-  if(size>arr.length) size=arr.length;
-  if(pRandom<=0 || songIdx==0)return arr.slice(0, size);
-  var shuffled = arr.slice(0), i = arr.length, min = i - size, temp, index;
-  while (i-- > min) {
-      index = Math.floor((i + 1) * Math.random());
-      temp = shuffled[index];
-      shuffled[index] = shuffled[i];
-      shuffled[i] = temp;
+  size = Math.min(Math.max(0, Number(size) || 0), arr.length);
+  if (size === arr.length) return arr;
+  if (pRandom<=0 || songIdx==0)return arr.slice(0, size);
+  const selected = [];
+  const swaps = new Map();
+  for (let index = 0; index < size; index++) {
+    const randomIndex = index + Math.floor(Math.random() * (arr.length - index));
+    const selectedSong = swaps.has(randomIndex) ? swaps.get(randomIndex) : arr[randomIndex];
+    const currentSong = swaps.has(index) ? swaps.get(index) : arr[index];
+    swaps.set(randomIndex, currentSong);
+    selected.push(selectedSong);
   }
-  return shuffled.slice(min);
+  return selected;
 }
 function moveDivToUl() {
   // const newLi = document.createElement("li");
@@ -408,43 +412,41 @@ async function hydrateSongFavorites(songs) {
     if (favorite) song.fav = favorite.fav;
   }));
 }
-async function syncFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios : []) {
+async function syncFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios : [], priorityKey = '') {
   const cloud = window.xPlayerFavoriteCloud;
   if (!cloud || !songs.length) return { downloadedCount: 0, uploadedCount: 0 };
-  const uniqueSongs = Array.from(new Map(songs.map(song => [song.favKey, song])).values());
-  const totals = { downloadedCount: 0, uploadedCount: 0 };
-  for (let offset = 0; offset < uniqueSongs.length; offset += 10) {
-    const batch = uniqueSongs.slice(offset, offset + 10);
-    const localRecords = await Promise.all(batch.map(async song => {
-      const favorite = await loadSongFavorite(song.favKey);
-      return {
-        key: song.favKey,
-        fav: favorite ? favorite.fav : !!song.fav,
-        updatedAt: favorite ? Number(favorite.updatedAt) || 0 : 0,
-        exists: !!favorite
-      };
-    }));
-    const syncResult = await cloud.sync(localRecords, user);
-    if (syncResult.remoteUpdates.length) {
-      await saveSongFavorites(syncResult.remoteUpdates);
-      const favoritesByKey = new Map(syncResult.remoteUpdates.map(favorite => [favorite.key, favorite.fav]));
-      uniqueSongs.forEach(song => {
-        if (favoritesByKey.has(song.favKey)) song.fav = favoritesByKey.get(song.favKey);
-      });
-      if (ap && ap.list) {
-        const currentSong = ap.list.audios[ap.list.index];
-        const favoriteButton = ap.template.pic.querySelector('.aplayer-fav-button');
-        if (currentSong && favoriteButton) {
-          favoriteButton.classList.toggle('aplayer-fav-active', !!currentSong.fav);
-          favoriteButton.setAttribute('aria-pressed', String(!!currentSong.fav));
-          favoriteButton.setAttribute('aria-label', currentSong.fav ? 'Remove from favorites' : 'Add to favorites');
-        }
+  const prioritySong = priorityKey ? songs.find(song => song.favKey === priorityKey) : null;
+  const syncSongs = prioritySong
+    ? [prioritySong, ...songs.slice(0, 10).filter(song => song !== prioritySong).slice(0, 9)]
+    : songs.slice(0, 10);
+  const uniqueSongs = Array.from(new Map(syncSongs.map(song => [song.favKey, song])).values());
+  const localRecords = await Promise.all(uniqueSongs.map(async song => {
+    const favorite = await loadSongFavorite(song.favKey);
+    return {
+      key: song.favKey,
+      fav: favorite ? favorite.fav : !!song.fav,
+      updatedAt: favorite ? Number(favorite.updatedAt) || 0 : 0,
+      exists: !!favorite
+    };
+  }));
+  const syncResult = await cloud.sync(localRecords, user);
+  if (syncResult.remoteUpdates.length) {
+    await saveSongFavorites(syncResult.remoteUpdates);
+    const favoritesByKey = new Map(syncResult.remoteUpdates.map(favorite => [favorite.key, favorite.fav]));
+    uniqueSongs.forEach(song => {
+      if (favoritesByKey.has(song.favKey)) song.fav = favoritesByKey.get(song.favKey);
+    });
+    if (ap && ap.list) {
+      const currentSong = ap.list.audios[ap.list.index];
+      const favoriteButton = ap.template.pic.querySelector('.aplayer-fav-button');
+      if (currentSong && favoriteButton) {
+        favoriteButton.classList.toggle('aplayer-fav-active', !!currentSong.fav);
+        favoriteButton.setAttribute('aria-pressed', String(!!currentSong.fav));
+        favoriteButton.setAttribute('aria-label', currentSong.fav ? 'Remove from favorites' : 'Add to favorites');
       }
     }
-    totals.downloadedCount += syncResult.downloadedCount;
-    totals.uploadedCount += syncResult.uploadedCount;
   }
-  return totals;
+  return syncResult;
 }
 window.syncFavoritesToCloud = async function () {
   const cloud = await window.xPlayerFavoriteCloudReady;
@@ -578,7 +580,27 @@ window.addEventListener('load', async () => {
   json2array(jsonUrl).then(async songs => {
     if(songs){      
       // console.log('Parsed songs: ', songs);
-      songs=getRandomSubarray(songs, nSongs);
+      let restoredSongIndex = -1;
+      if (returnSongKey) {
+        const returnUrl = new URL(window.location.href);
+        {
+          const playlistSongs = songs;
+          songs = getRandomSubarray(playlistSongs, nSongs);
+          const restoredSong = playlistSongs.find(song => getSongFavoriteKey(song) === returnSongKey);
+          if (restoredSong) {
+            let selectedIndex = songs.findIndex(song => getSongFavoriteKey(song) === returnSongKey);
+            if (selectedIndex < 0 && songs.length) {
+              songs[songs.length - 1] = restoredSong;
+              selectedIndex = songs.length - 1;
+            }
+            restoredSongIndex = selectedIndex;
+          }
+        }
+        returnUrl.searchParams.delete('xplayerSong');
+        window.history.replaceState(window.history.state, '', returnUrl);
+      } else {
+        songs = getRandomSubarray(songs, nSongs);
+      }
       await hydrateSongFavorites(songs);
       console.log('Cached songs: ', songs);
       //----------------------------------
@@ -601,9 +623,10 @@ window.addEventListener('load', async () => {
         resolveAudio,
         audio: songs
       });
+      if (restoredSongIndex >= 0) ap.list.switch(restoredSongIndex);
       if (signedInUser) {
         window.setTimeout(() => {
-          syncFavoritesToCloud(signedInUser).catch(error => {
+          syncFavoritesToCloud(signedInUser, ap.list.audios, returnSongKey).catch(error => {
             console.error('Failed to sync favorites after sign-in:', error);
           });
         }, 10);
@@ -621,6 +644,7 @@ window.addEventListener('load', async () => {
         try {
           const returnUrl = new URL(window.location.href);
           returnUrl.searchParams.set('playlist', pPlaylist);
+          returnUrl.searchParams.set('xplayerSong', audio.favKey);
           const user = await cloud.ensureSignedIn(returnUrl);
           if (user) await syncFavoritesToCloud(user, [audio]);
         } catch (error) {
