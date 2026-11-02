@@ -173,6 +173,18 @@ function logFavoriteProgress(operationId, startedAt, stage, details = {}) {
     ...details
   });
 }
+function withFavoriteTimeout(promise, stage, timeoutMs = 20000) {
+  let timeoutId;
+  return Promise.race([
+    promise,
+    new Promise((resolve, reject) => {
+      timeoutId = window.setTimeout(
+        () => reject(new Error(`Favorite sync timed out while ${stage}.`)),
+        timeoutMs
+      );
+    })
+  ]).finally(() => window.clearTimeout(timeoutId));
+}
 const storeName = 'xLocalIDB';
 const favoritesStoreName = 'xSongFavorites';
 const storeKey = 'fileName';
@@ -588,15 +600,31 @@ window.syncFavoritesToCloud = async function () {
   const operationId = ++favoriteOperationSequence;
   const startedAt = performance.now();
   logFavoriteProgress(operationId, startedAt, 'explicit-sync-auth-started');
-  const cloud = await window.xPlayerFavoriteCloudReady;
-  if (!cloud) {
-    logFavoriteProgress(operationId, startedAt, 'explicit-sync-unavailable');
-    throw new Error('Firebase favorites sync is not configured.');
+  try {
+    if (!window.xPlayerFavoriteCloudReady) {
+      throw new Error('Firebase favorites module is not loaded on this page.');
+    }
+    const cloud = await withFavoriteTimeout(
+      window.xPlayerFavoriteCloudReady,
+      'waiting for Firebase initialization'
+    );
+    if (!cloud) {
+      throw new Error('Firebase favorites sync is not configured.');
+    }
+    await withFavoriteTimeout(cloud.ready, 'waiting for Firebase authentication state');
+    const user = await withFavoriteTimeout(cloud.ensureSignedIn(), 'getting Firebase sign-in');
+    logFavoriteProgress(operationId, startedAt, 'explicit-sync-authenticated');
+    return await withFavoriteTimeout(
+      syncFavoritesToCloud(user),
+      'syncing favorites',
+      35000
+    );
+  } catch (error) {
+    logFavoriteProgress(operationId, startedAt, 'explicit-sync-failed', {
+      message: error.message || String(error)
+    });
+    throw error;
   }
-  await cloud.ready;
-  const user = await cloud.ensureSignedIn();
-  logFavoriteProgress(operationId, startedAt, 'explicit-sync-authenticated');
-  return syncFavoritesToCloud(user);
 };
 // Example Usage:
 // keyExists('session_456_audio').then(exists => {

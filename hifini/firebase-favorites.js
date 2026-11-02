@@ -58,11 +58,15 @@ function initializeFavoriteCloud() {
       const pending = pendingRequests.get(id);
       if (!pending) return;
       pendingRequests.delete(id);
+      window.clearTimeout(pending.timeoutId);
       if (error) pending.reject(new Error(error));
       else pending.resolve(result);
     });
     const rejectPendingRequests = error => {
-      pendingRequests.forEach(request => request.reject(error));
+      pendingRequests.forEach(request => {
+        window.clearTimeout(request.timeoutId);
+        request.reject(error);
+      });
       pendingRequests.clear();
     };
     worker.addEventListener('error', event => {
@@ -81,7 +85,11 @@ function initializeFavoriteCloud() {
       const id = ++nextRequestId;
       const requestStartedAt = performance.now();
       const result = new Promise((resolve, reject) => {
-        pendingRequests.set(id, { resolve, reject });
+        const timeoutId = window.setTimeout(() => {
+          pendingRequests.delete(id);
+          reject(new Error('Firebase favorites worker did not respond within 32 seconds.'));
+        }, 32000);
+        pendingRequests.set(id, { resolve, reject, timeoutId });
       });
       try {
         console.log(`[favorite-cloud:${id}] worker-sync-posted`, {
@@ -96,6 +104,8 @@ function initializeFavoriteCloud() {
           localRecords
         });
       } catch (error) {
+        const pending = pendingRequests.get(id);
+        if (pending) window.clearTimeout(pending.timeoutId);
         pendingRequests.delete(id);
         throw error;
       }
