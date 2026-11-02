@@ -1,20 +1,30 @@
 import { firebaseConfig } from './firebase-config.js';
 
 function initializeFavoriteCloud() {
+  const startedAt = performance.now();
+  const logProgress = (stage, details = {}) => {
+    console.info('[favorite-cloud]', stage, {
+      elapsedMs: Math.round(performance.now() - startedAt),
+      ...details
+    });
+  };
   if (!firebaseConfig || !firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId || !firebaseConfig.appId) {
     console.info('Firebase favorites sync is disabled until hifini/firebase-config.js is configured.');
     return Promise.resolve(null);
   }
 
+  logProgress('initialization-started');
   const firebaseUrl = 'https://www.gstatic.com/firebasejs/11.10.0';
   return Promise.all([
     import(`${firebaseUrl}/firebase-app.js`),
     import(`${firebaseUrl}/firebase-auth.js`)
   ]).then(async ([appSdk, authSdk]) => {
+    logProgress('firebase-sdk-imported');
     const app = appSdk.initializeApp(firebaseConfig, 'xplayer-favorites');
     const auth = authSdk.getAuth(app);
     await authSdk.setPersistence(auth, authSdk.browserLocalPersistence);
     await authSdk.getRedirectResult(auth);
+    logProgress('auth-persistence-and-redirect-ready');
     const provider = new authSdk.GoogleAuthProvider();
     let currentUser = auth.currentUser;
     let resolveAuthReady;
@@ -24,6 +34,7 @@ function initializeFavoriteCloud() {
 
     authSdk.onAuthStateChanged(auth, user => {
       currentUser = user;
+      logProgress('auth-state-observed', { signedIn: !!user });
       resolveAuthReady(user);
     });
 
@@ -68,10 +79,14 @@ function initializeFavoriteCloud() {
       const signedInUser = user || await ensureSignedIn();
       const idToken = await signedInUser.getIdToken();
       const id = ++nextRequestId;
+      const requestStartedAt = performance.now();
       const result = new Promise((resolve, reject) => {
         pendingRequests.set(id, { resolve, reject });
       });
       try {
+        console.info(`[favorite-cloud:${id}] worker-sync-posted`, {
+          songCount: localRecords.length
+        });
         worker.postMessage({
           id,
           type: 'sync',
@@ -84,7 +99,20 @@ function initializeFavoriteCloud() {
         pendingRequests.delete(id);
         throw error;
       }
-      return result;
+      return result.then(syncResult => {
+        console.info(`[favorite-cloud:${id}] worker-sync-result`, {
+          elapsedMs: Math.round(performance.now() - requestStartedAt),
+          downloadedCount: syncResult.downloadedCount,
+          uploadedCount: syncResult.uploadedCount
+        });
+        return syncResult;
+      }, error => {
+        console.error(`[favorite-cloud:${id}] worker-sync-failed`, {
+          elapsedMs: Math.round(performance.now() - requestStartedAt),
+          message: error.message || String(error)
+        });
+        throw error;
+      });
     }
 
     return {
