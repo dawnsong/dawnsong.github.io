@@ -168,6 +168,7 @@ let ap=null;
 const favoriteChangesInProgress = new Set();
 let favoriteOperationSequence = 0;
 let explicitFavoriteSyncPromise = null;
+let currentPlaylistFavoriteSyncPromise = null;
 function logFavoriteProgress(operationId, startedAt, stage, details = {}) {
   const progress = {
     operationId,
@@ -621,6 +622,54 @@ async function syncCurrentPlaylistFavoritesToCloud(user, songs = ap && ap.list ?
   }
   return syncResult;
 }
+function syncCurrentPlaylistFavoritesOnce(user) {
+  if (currentPlaylistFavoriteSyncPromise) return currentPlaylistFavoriteSyncPromise;
+  const syncPromise = syncCurrentPlaylistFavoritesToCloud(user);
+  currentPlaylistFavoriteSyncPromise = syncPromise.finally(() => {
+    currentPlaylistFavoriteSyncPromise = null;
+  });
+  return currentPlaylistFavoriteSyncPromise;
+}
+async function syncLoadedPlaylistFavoritesInBackground() {
+  const operationId = ++favoriteOperationSequence;
+  const startedAt = performance.now();
+  try {
+    logFavoriteProgress(operationId, startedAt, 'background-sync-auth-started');
+    const cloud = await withFavoriteTimeout(
+      window.xPlayerFavoriteCloudReady,
+      'waiting for Firebase initialization'
+    );
+    if (!cloud) {
+      logFavoriteProgress(operationId, startedAt, 'background-sync-skipped', {
+        reason: 'Firebase favorites are unavailable'
+      });
+      return;
+    }
+    logFavoriteProgress(operationId, startedAt, 'background-sync-auth-state-waiting');
+    await withFavoriteTimeout(cloud.ready, 'waiting for Firebase authentication state');
+    const user = cloud.currentUser();
+    if (!user) {
+      logFavoriteProgress(operationId, startedAt, 'background-sync-skipped', {
+        reason: 'user is signed out'
+      });
+      return;
+    }
+    logFavoriteProgress(operationId, startedAt, 'background-sync-started', {
+      songCount: Math.min(ap?.list?.audios?.length || 0, 10)
+    });
+    const result = await syncCurrentPlaylistFavoritesOnce(user);
+    logFavoriteProgress(operationId, startedAt, 'background-sync-completed', {
+      downloadedCount: result.downloadedCount,
+      uploadedCount: result.uploadedCount,
+      remoteUpdateCount: result.remoteUpdates.length
+    });
+  } catch (error) {
+    logFavoriteProgress(operationId, startedAt, 'background-sync-failed', {
+      message: error.message || String(error)
+    });
+    console.error('Background favorite sync failed:', error);
+  }
+}
 window.syncFavoritesToCloud = function () {
   if (explicitFavoriteSyncPromise) {
     console.warn('[favorite] explicit-sync-already-running; returning existing sync promise');
@@ -646,7 +695,7 @@ window.syncFavoritesToCloud = function () {
       logFavoriteProgress(operationId, startedAt, 'explicit-sync-sign-in-started');
       const user = await withFavoriteTimeout(cloud.ensureSignedIn(), 'getting Firebase sign-in');
       logFavoriteProgress(operationId, startedAt, 'explicit-sync-authenticated');
-      return await syncCurrentPlaylistFavoritesToCloud(user);
+      return await syncCurrentPlaylistFavoritesOnce(user);
     } catch (error) {
       logFavoriteProgress(operationId, startedAt, 'explicit-sync-failed', {
         previousStage: window.xPlayerFavoriteSyncStatus?.stage || 'unknown',
@@ -918,6 +967,9 @@ window.addEventListener('load', async () => {
         console.log("src: "+ ap.audio.src)
         console.log(ap.audio.buffered)
       });
+      window.setTimeout(() => {
+        void syncLoadedPlaylistFavoritesInBackground();
+      }, 0);
       //save decoded hifini URLs (i.e., qq music url) to local cookies
       // ap.on('play', function () {
       //   console.log('Start playing song: ' + ap.list.index );        
