@@ -1,5 +1,29 @@
 import { firebaseConfig } from './firebase-config.js';
 
+function logFavoriteCloudStage(stage, details = {}) {
+  const progress = {
+    ...(window.xPlayerFavoriteSyncStatus || {}),
+    stage: `firebase-${stage}`,
+    timestamp: new Date().toISOString(),
+    ...details
+  };
+  window.xPlayerFavoriteSyncStatus = progress;
+  console.warn('[favorite-cloud]', stage, progress);
+}
+
+function withFavoriteCloudTimeout(promise, stage, timeoutMs) {
+  let timeoutId;
+  return Promise.race([
+    promise,
+    new Promise((resolve, reject) => {
+      timeoutId = window.setTimeout(
+        () => reject(new Error(`Firebase favorites timed out while ${stage}.`)),
+        timeoutMs
+      );
+    })
+  ]).finally(() => window.clearTimeout(timeoutId));
+}
+
 function initializeFavoriteCloud() {
   const startedAt = performance.now();
   const logProgress = (stage, details = {}) => {
@@ -81,9 +105,13 @@ function initializeFavoriteCloud() {
         throw new Error('A favorites sync must contain no more than 10 songs.');
       }
       const signedInUser = user || await ensureSignedIn();
-      console.warn('[favorite-cloud] id-token-request-started');
-      const idToken = await signedInUser.getIdToken();
-      console.warn('[favorite-cloud] id-token-ready');
+      logFavoriteCloudStage('id-token-request-started');
+      const idToken = await withFavoriteCloudTimeout(
+        signedInUser.getIdToken(),
+        'getting the Firebase ID token',
+        15000
+      );
+      logFavoriteCloudStage('id-token-ready');
       const id = ++nextRequestId;
       const requestStartedAt = performance.now();
       const result = new Promise((resolve, reject) => {
@@ -94,7 +122,8 @@ function initializeFavoriteCloud() {
         pendingRequests.set(id, { resolve, reject, timeoutId });
       });
       try {
-        console.warn(`[favorite-cloud:${id}] worker-sync-posted`, {
+        logFavoriteCloudStage('worker-sync-posted', {
+          requestId: id,
           songCount: localRecords.length
         });
         worker.postMessage({
@@ -105,6 +134,7 @@ function initializeFavoriteCloud() {
           idToken,
           localRecords
         });
+        logFavoriteCloudStage('worker-response-waiting', { requestId: id });
       } catch (error) {
         const pending = pendingRequests.get(id);
         if (pending) window.clearTimeout(pending.timeoutId);
@@ -112,13 +142,18 @@ function initializeFavoriteCloud() {
         throw error;
       }
       return result.then(syncResult => {
-        console.warn(`[favorite-cloud:${id}] worker-sync-result`, {
+        logFavoriteCloudStage('worker-sync-result', {
+          requestId: id,
           elapsedMs: Math.round(performance.now() - requestStartedAt),
           downloadedCount: syncResult.downloadedCount,
           uploadedCount: syncResult.uploadedCount
         });
         return syncResult;
       }, error => {
+        logFavoriteCloudStage('worker-sync-failed', {
+          requestId: id,
+          message: error.message || String(error)
+        });
         console.error(`[favorite-cloud:${id}] worker-sync-failed`, {
           elapsedMs: Math.round(performance.now() - requestStartedAt),
           message: error.message || String(error)

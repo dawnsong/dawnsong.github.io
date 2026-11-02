@@ -170,9 +170,13 @@ let favoriteOperationSequence = 0;
 let explicitFavoriteSyncPromise = null;
 function logFavoriteProgress(operationId, startedAt, stage, details = {}) {
   const progress = {
+    operationId,
+    stage,
+    timestamp: new Date().toISOString(),
     elapsedMs: Math.round(performance.now() - startedAt),
     ...details
   };
+  window.xPlayerFavoriteSyncStatus = progress;
   if (stage.includes('sync')) {
     console.warn(`[favorite:${operationId}] ${stage}`, progress);
   } else {
@@ -562,19 +566,26 @@ async function syncFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios
   logFavoriteProgress(operationId, startedAt, 'cloud-sync-started', {
     songCount: uniqueSongs.length
   });
-  logFavoriteProgress(operationId, startedAt, 'sync-local-records-loading');
-  const localRecords = await Promise.all(uniqueSongs.map(async song => {
-    const favorite = await loadSongFavorite(song.favKey);
-    return {
-      key: song.favKey,
-      fav: favorite ? favorite.fav : !!song.fav,
-      updatedAt: favorite ? Number(favorite.updatedAt) || 0 : 0,
-      exists: !!favorite
-    };
-  }));
+  logFavoriteProgress(operationId, startedAt, 'sync-local-records-loading', {
+    songCount: uniqueSongs.length
+  });
+  const localRecords = await withFavoriteTimeout(
+    Promise.all(uniqueSongs.map(async song => {
+      const favorite = await loadSongFavorite(song.favKey);
+      return {
+        key: song.favKey,
+        fav: favorite ? favorite.fav : !!song.fav,
+        updatedAt: favorite ? Number(favorite.updatedAt) || 0 : 0,
+        exists: !!favorite
+      };
+    })),
+    'loading local favorite records',
+    10000
+  );
   logFavoriteProgress(operationId, startedAt, 'sync-local-records-loaded', {
     songCount: localRecords.length
   });
+  logFavoriteProgress(operationId, startedAt, 'sync-cloud-worker-started');
   const syncResult = await cloud.sync(localRecords, user);
   logFavoriteProgress(operationId, startedAt, 'worker-sync-completed', {
     downloadedCount: syncResult.downloadedCount,
@@ -582,7 +593,14 @@ async function syncFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios
     remoteUpdateCount: syncResult.remoteUpdates.length
   });
   if (syncResult.remoteUpdates.length) {
-    await saveSongFavorites(syncResult.remoteUpdates);
+    logFavoriteProgress(operationId, startedAt, 'sync-saving-remote-favorites', {
+      count: syncResult.remoteUpdates.length
+    });
+    await withFavoriteTimeout(
+      saveSongFavorites(syncResult.remoteUpdates),
+      'saving remote favorite records locally',
+      10000
+    );
     const favoritesByKey = new Map(syncResult.remoteUpdates.map(favorite => [favorite.key, favorite.fav]));
     uniqueSongs.forEach(song => {
       if (favoritesByKey.has(song.favKey)) song.fav = favoritesByKey.get(song.favKey);
@@ -623,16 +641,15 @@ window.syncFavoritesToCloud = function () {
       if (!cloud) {
         throw new Error('Firebase favorites sync is not configured.');
       }
+      logFavoriteProgress(operationId, startedAt, 'explicit-sync-auth-state-waiting');
       await withFavoriteTimeout(cloud.ready, 'waiting for Firebase authentication state');
+      logFavoriteProgress(operationId, startedAt, 'explicit-sync-sign-in-started');
       const user = await withFavoriteTimeout(cloud.ensureSignedIn(), 'getting Firebase sign-in');
       logFavoriteProgress(operationId, startedAt, 'explicit-sync-authenticated');
-      return await withFavoriteTimeout(
-        syncFavoritesToCloud(user),
-        'syncing favorites',
-        35000
-      );
+      return await syncFavoritesToCloud(user);
     } catch (error) {
       logFavoriteProgress(operationId, startedAt, 'explicit-sync-failed', {
+        previousStage: window.xPlayerFavoriteSyncStatus?.stage || 'unknown',
         message: error.message || String(error)
       });
       throw error;
