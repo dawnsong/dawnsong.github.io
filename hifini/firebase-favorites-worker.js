@@ -105,7 +105,7 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
   if (!records.length)
     return { downloadedCount: 0, uploadedCount: 0, remoteUpdates: [] };
 
-  console.info('[favorite-worker] sync-started', { songCount: records.length });
+  console.info("[favorite-worker] sync-started", { songCount: records.length });
   const database = `projects/${encodeURIComponent(
     projectId
   )}/databases/(default)/documents`;
@@ -123,18 +123,18 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
       ).join("");
     })
   );
-  console.info('[favorite-worker] document-ids-ready', {
+  console.info("[favorite-worker] document-ids-ready", {
     elapsedMs: Math.round(performance.now() - startedAt),
-    count: documentIds.length
+    count: documentIds.length,
   });
   const responseText = await requestJson(
     `https://firestore.googleapis.com/v1/${database}:batchGet`,
     idToken,
     { documents: documentIds.map((id) => `${collection}/${id}`) }
   );
-  console.info('[favorite-worker] remote-read-completed', {
+  console.info("[favorite-worker] remote-read-completed", {
     elapsedMs: Math.round(performance.now() - startedAt),
-    responseBytes: new TextEncoder().encode(responseText).length
+    responseBytes: new TextEncoder().encode(responseText).length,
   });
   const remoteByDocumentId = new Map();
   parseJsonResponses(responseText).forEach((response) => {
@@ -167,7 +167,9 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
   });
 
   if (writes.length) {
-    console.info('[favorite-worker] remote-write-started', { count: writes.length });
+    console.info("[favorite-worker] remote-write-started", {
+      count: writes.length,
+    });
     await requestJson(
       `https://firestore.googleapis.com/v1/${database}:commit`,
       idToken,
@@ -186,16 +188,16 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
         })),
       }
     );
-    console.info('[favorite-worker] remote-write-completed', {
+    console.info("[favorite-worker] remote-write-completed", {
       elapsedMs: Math.round(performance.now() - startedAt),
-      count: writes.length
+      count: writes.length,
     });
   }
-  console.info('[favorite-worker] sync-completed', {
+  console.info("[favorite-worker] sync-completed", {
     elapsedMs: Math.round(performance.now() - startedAt),
     downloadedCount: remoteByDocumentId.size,
     uploadedCount: writes.length,
-    remoteUpdateCount: remoteUpdates.length
+    remoteUpdateCount: remoteUpdates.length,
   });
   return {
     downloadedCount: remoteByDocumentId.size,
@@ -213,7 +215,7 @@ self.addEventListener("message", async (event) => {
     self.postMessage({ id, result });
   } catch (error) {
     console.error(`[favorite-worker:${id}] request-failed`, {
-      message: error.message || String(error)
+      message: error.message || String(error),
     });
     self.postMessage({ id, error: error.message || String(error) });
   }
