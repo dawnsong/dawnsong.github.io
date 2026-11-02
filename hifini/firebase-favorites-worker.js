@@ -71,7 +71,9 @@ async function requestJson(url, idToken, body) {
 
     if (!response.ok) {
       throw new Error(
-        `Firebase favorites request failed (${response.status}): ${responseText.slice(0, 1000)}`
+        `Firebase favorites request failed (${
+          response.status
+        }): ${responseText.slice(0, 1000)}`
       );
     }
     return responseText;
