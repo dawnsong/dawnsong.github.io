@@ -13,15 +13,101 @@
 function randomInt(min, max) { // min and max included 
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
-async function json2array(url4gJson){
+async function json2array(url4gJson, limit, requiredKey){
   console.log(`Fetching JSON from ${url4gJson} ...`);
   try {
     const response = await fetch(url4gJson);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const jsonData =  response.json();
-    return jsonData;
+    if (!response.body) throw new Error('Streaming playlist responses are not supported by this browser.');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    const selectedSongs = [];
+    let requiredSong = null;
+    let songsSeen = 0;
+    let inArray = false;
+    let arrayClosed = false;
+    let elementDepth = 0;
+    let elementBuffer = '';
+    let inString = false;
+    let escaped = false;
+    let stopReading = false;
+
+    const processText = text => {
+      for (const character of text) {
+        if (!inArray) {
+          if (/\s/.test(character)) continue;
+          if (character !== '[') throw new Error('Playlist JSON must contain an array.');
+          inArray = true;
+          continue;
+        }
+        if (!elementBuffer) {
+          if (/[\s,]/.test(character)) continue;
+          if (character === ']') {
+            arrayClosed = true;
+            break;
+          }
+          if (character !== '{') throw new Error('Playlist entries must be JSON objects.');
+          elementDepth = 1;
+          elementBuffer = character;
+          continue;
+        }
+
+        elementBuffer += character;
+        if (inString) {
+          if (escaped) escaped = false;
+          else if (character === '\\') escaped = true;
+          else if (character === '"') inString = false;
+          continue;
+        }
+        if (character === '"') inString = true;
+        else if (character === '{' || character === '[') elementDepth++;
+        else if (character === '}' || character === ']') elementDepth--;
+
+        if (elementDepth === 0) {
+          const song = JSON.parse(elementBuffer);
+          const songKey = getSongFavoriteKey(song);
+          if (requiredKey && songKey === requiredKey) requiredSong = song;
+          if (pRandom <= 0 || songIdx === 0) {
+            if (selectedSongs.length < limit) selectedSongs.push(song);
+          } else if (selectedSongs.length < limit) {
+            selectedSongs.push(song);
+          } else {
+            const replacementIndex = Math.floor(Math.random() * (songsSeen + 1));
+            if (replacementIndex < limit) selectedSongs[replacementIndex] = song;
+          }
+          songsSeen++;
+          elementBuffer = '';
+          if (!requiredKey && selectedSongs.length >= limit && (pRandom <= 0 || songIdx === 0)) {
+            stopReading = true;
+            break;
+          }
+        }
+      }
+    };
+
+    try {
+      while (!stopReading) {
+        const { done, value } = await reader.read();
+        if (done) {
+          processText(decoder.decode());
+          break;
+        }
+        processText(decoder.decode(value, { stream: true }));
+        if (arrayClosed) break;
+      }
+    } finally {
+      if (stopReading || arrayClosed) await reader.cancel();
+      reader.releaseLock();
+    }
+
+    if (!stopReading && (!arrayClosed || elementBuffer)) throw new Error('Playlist JSON ended before its array was complete.');
+    if (requiredSong) {
+      const requiredIndex = selectedSongs.findIndex(song => getSongFavoriteKey(song) === requiredKey);
+      if (requiredIndex < 0 && selectedSongs.length) selectedSongs[selectedSongs.length - 1] = requiredSong;
+    }
+    return selectedSongs;
   } catch (error) {
     console.error(`Fetching JSON (${url4gJson}) failed:`, error);
     throw error;
@@ -104,21 +190,6 @@ var pRandom=getParam('r', 1);
 if(pRandom==0)songIdx=0; //disable random if pRandom==0
 console.log(`nSongs=${nSongs} , jsonUrl=${jsonUrl} , pRandom=${pRandom} , pPlaylist=${pPlaylist} `);
 //------------------------------------------------------------------------------
-function getRandomSubarray(arr, size) {
-  size = Math.min(Math.max(0, Number(size) || 0), arr.length);
-  if (size === arr.length) return arr;
-  if (pRandom<=0 || songIdx==0)return arr.slice(0, size);
-  const selected = [];
-  const swaps = new Map();
-  for (let index = 0; index < size; index++) {
-    const randomIndex = index + Math.floor(Math.random() * (arr.length - index));
-    const selectedSong = swaps.has(randomIndex) ? swaps.get(randomIndex) : arr[randomIndex];
-    const currentSong = swaps.has(index) ? swaps.get(index) : arr[index];
-    swaps.set(randomIndex, currentSong);
-    selected.push(selectedSong);
-  }
-  return selected;
-}
 function moveDivToUl() {
   // const newLi = document.createElement("li");
   // // Move the div inside the new li
@@ -607,29 +678,16 @@ window.addEventListener('load', async () => {
     console.log('jsonUrl for offline playlist: ', jsonUrl);
   }  
   //make player
-  json2array(jsonUrl).then(async songs => {
+  json2array(jsonUrl, nSongs, returnSongKey).then(async songs => {
     if(songs){      
       // console.log('Parsed songs: ', songs);
-      let restoredSongIndex = -1;
+      const restoredSongIndex = returnSongKey
+        ? songs.findIndex(song => getSongFavoriteKey(song) === returnSongKey)
+        : -1;
       if (returnSongKey) {
         const returnUrl = new URL(window.location.href);
-        {
-          const playlistSongs = songs;
-          songs = getRandomSubarray(playlistSongs, nSongs);
-          const restoredSong = playlistSongs.find(song => getSongFavoriteKey(song) === returnSongKey);
-          if (restoredSong) {
-            let selectedIndex = songs.findIndex(song => getSongFavoriteKey(song) === returnSongKey);
-            if (selectedIndex < 0 && songs.length) {
-              songs[songs.length - 1] = restoredSong;
-              selectedIndex = songs.length - 1;
-            }
-            restoredSongIndex = selectedIndex;
-          }
-        }
         returnUrl.searchParams.delete('xplayerSong');
         window.history.replaceState(window.history.state, '', returnUrl);
-      } else {
-        songs = getRandomSubarray(songs, nSongs);
       }
       await hydrateSongFavorites(songs);
       console.log('Cached songs: ', songs);
