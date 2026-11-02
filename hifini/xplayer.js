@@ -365,14 +365,6 @@ function loadSongFavorite(key) {
     request.onerror = () => reject(request.error);
   });
 }
-function loadAllSongFavorites() {
-  return new Promise((resolve, reject) => {
-    const transaction = idb4songs.transaction([favoritesStoreName], 'readonly');
-    const request = transaction.objectStore(favoritesStoreName).getAll();
-    request.onsuccess = () => resolve(request.result || []);
-    request.onerror = () => reject(request.error);
-  });
-}
 function saveSongFavorite(key, fav, updatedAt = Date.now()) {
   return new Promise((resolve, reject) => {
     const transaction = idb4songs.transaction([favoritesStoreName], 'readwrite');
@@ -416,27 +408,43 @@ async function hydrateSongFavorites(songs) {
     if (favorite) song.fav = favorite.fav;
   }));
 }
-async function syncFavoritesToCloud(user) {
+async function syncFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios : []) {
   const cloud = window.xPlayerFavoriteCloud;
-  if (!cloud) return [];
-  const applyRemoteUpdates = async (favorites) => {
-    await saveSongFavorites(favorites);
-    if (!ap || !ap.list) return;
-    const favoritesByKey = new Map(favorites.map(favorite => [favorite.key, favorite.fav]));
-    ap.list.audios.forEach(song => {
-      if (favoritesByKey.has(song.favKey)) song.fav = favoritesByKey.get(song.favKey);
-    });
-    const currentSong = ap.list.audios[ap.list.index];
-    const favoriteButton = ap.template.pic.querySelector('.aplayer-fav-button');
-    if (currentSong && favoriteButton) {
-      favoriteButton.classList.toggle('aplayer-fav-active', !!currentSong.fav);
-      favoriteButton.setAttribute('aria-pressed', String(!!currentSong.fav));
-      favoriteButton.setAttribute('aria-label', currentSong.fav ? 'Remove from favorites' : 'Add to favorites');
+  if (!cloud || !songs.length) return { downloadedCount: 0, uploadedCount: 0 };
+  const uniqueSongs = Array.from(new Map(songs.map(song => [song.favKey, song])).values());
+  const totals = { downloadedCount: 0, uploadedCount: 0 };
+  for (let offset = 0; offset < uniqueSongs.length; offset += 10) {
+    const batch = uniqueSongs.slice(offset, offset + 10);
+    const localRecords = await Promise.all(batch.map(async song => {
+      const favorite = await loadSongFavorite(song.favKey);
+      return {
+        key: song.favKey,
+        fav: favorite ? favorite.fav : !!song.fav,
+        updatedAt: favorite ? Number(favorite.updatedAt) || 0 : 0,
+        exists: !!favorite
+      };
+    }));
+    const syncResult = await cloud.sync(localRecords, user);
+    if (syncResult.remoteUpdates.length) {
+      await saveSongFavorites(syncResult.remoteUpdates);
+      const favoritesByKey = new Map(syncResult.remoteUpdates.map(favorite => [favorite.key, favorite.fav]));
+      uniqueSongs.forEach(song => {
+        if (favoritesByKey.has(song.favKey)) song.fav = favoritesByKey.get(song.favKey);
+      });
+      if (ap && ap.list) {
+        const currentSong = ap.list.audios[ap.list.index];
+        const favoriteButton = ap.template.pic.querySelector('.aplayer-fav-button');
+        if (currentSong && favoriteButton) {
+          favoriteButton.classList.toggle('aplayer-fav-active', !!currentSong.fav);
+          favoriteButton.setAttribute('aria-pressed', String(!!currentSong.fav));
+          favoriteButton.setAttribute('aria-label', currentSong.fav ? 'Remove from favorites' : 'Add to favorites');
+        }
+      }
     }
-  };
-  const syncResult = await cloud.sync(await loadAllSongFavorites(), user, applyRemoteUpdates);
-  cloud.completeSync(user, syncResult.checkpoint);
-  return syncResult;
+    totals.downloadedCount += syncResult.downloadedCount;
+    totals.uploadedCount += syncResult.uploadedCount;
+  }
+  return totals;
 }
 window.syncFavoritesToCloud = async function () {
   const cloud = await window.xPlayerFavoriteCloudReady;
@@ -598,7 +606,7 @@ window.addEventListener('load', async () => {
           syncFavoritesToCloud(signedInUser).catch(error => {
             console.error('Failed to sync favorites after sign-in:', error);
           });
-        }, 0);
+        }, 10);
       }
       ap.on('favoritechange', async ({ audio, fav }) => {
         try {
@@ -614,7 +622,7 @@ window.addEventListener('load', async () => {
           const returnUrl = new URL(window.location.href);
           returnUrl.searchParams.set('playlist', pPlaylist);
           const user = await cloud.ensureSignedIn(returnUrl);
-          if (user) await syncFavoritesToCloud(user);
+          if (user) await syncFavoritesToCloud(user, [audio]);
         } catch (error) {
           console.error(`Favorite saved locally, but cloud sync failed for '${audio.name}':`, error);
         }
@@ -681,5 +689,3 @@ window.addEventListener('load', async () => {
 
   await log4quota();
 })
-
-

@@ -26,5 +26,8 @@ latest_logs
 __*cache*
 xgcloud.json
 *hifini*
+!hifini/
+hifini/*
+!hifini/firebase-favorites-worker.js
 .ssl/*.key
 bin/download_firebase_favorites.py
