@@ -105,7 +105,7 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
   if (!records.length)
     return { downloadedCount: 0, uploadedCount: 0, remoteUpdates: [] };
 
-  console.info("[favorite-worker] sync-started", { songCount: records.length });
+  console.log("[favorite-worker] sync-started", { songCount: records.length });
   const database = `projects/${encodeURIComponent(
     projectId
   )}/databases/(default)/documents`;
@@ -123,7 +123,7 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
       ).join("");
     })
   );
-  console.info("[favorite-worker] document-ids-ready", {
+  console.log("[favorite-worker] document-ids-ready", {
     elapsedMs: Math.round(performance.now() - startedAt),
     count: documentIds.length,
   });
@@ -132,7 +132,7 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
     idToken,
     { documents: documentIds.map((id) => `${collection}/${id}`) }
   );
-  console.info("[favorite-worker] remote-read-completed", {
+  console.log("[favorite-worker] remote-read-completed", {
     elapsedMs: Math.round(performance.now() - startedAt),
     responseBytes: new TextEncoder().encode(responseText).length,
   });
@@ -167,7 +167,7 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
   });
 
   if (writes.length) {
-    console.info("[favorite-worker] remote-write-started", {
+    console.log("[favorite-worker] remote-write-started", {
       count: writes.length,
     });
     await requestJson(
@@ -188,12 +188,12 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
         })),
       }
     );
-    console.info("[favorite-worker] remote-write-completed", {
+    console.log("[favorite-worker] remote-write-completed", {
       elapsedMs: Math.round(performance.now() - startedAt),
       count: writes.length,
     });
   }
-  console.info("[favorite-worker] sync-completed", {
+  console.log("[favorite-worker] sync-completed", {
     elapsedMs: Math.round(performance.now() - startedAt),
     downloadedCount: remoteByDocumentId.size,
     uploadedCount: writes.length,

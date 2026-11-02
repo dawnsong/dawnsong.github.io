@@ -3,7 +3,7 @@ import { firebaseConfig } from './firebase-config.js';
 function initializeFavoriteCloud() {
   const startedAt = performance.now();
   const logProgress = (stage, details = {}) => {
-    console.info('[favorite-cloud]', stage, {
+    console.log('[favorite-cloud]', stage, {
       elapsedMs: Math.round(performance.now() - startedAt),
       ...details
     });
@@ -84,7 +84,7 @@ function initializeFavoriteCloud() {
         pendingRequests.set(id, { resolve, reject });
       });
       try {
-        console.info(`[favorite-cloud:${id}] worker-sync-posted`, {
+        console.log(`[favorite-cloud:${id}] worker-sync-posted`, {
           songCount: localRecords.length
         });
         worker.postMessage({
@@ -100,7 +100,7 @@ function initializeFavoriteCloud() {
         throw error;
       }
       return result.then(syncResult => {
-        console.info(`[favorite-cloud:${id}] worker-sync-result`, {
+        console.log(`[favorite-cloud:${id}] worker-sync-result`, {
           elapsedMs: Math.round(performance.now() - requestStartedAt),
           downloadedCount: syncResult.downloadedCount,
           uploadedCount: syncResult.uploadedCount

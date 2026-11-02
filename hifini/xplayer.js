@@ -168,7 +168,7 @@ let ap=null;
 const favoriteChangesInProgress = new Set();
 let favoriteOperationSequence = 0;
 function logFavoriteProgress(operationId, startedAt, stage, details = {}) {
-  console.info(`[favorite:${operationId}] ${stage}`, {
+  console.log(`[favorite:${operationId}] ${stage}`, {
     elapsedMs: Math.round(performance.now() - startedAt),
     ...details
   });
