@@ -757,8 +757,17 @@ async function url4cachedSong(doFetchAudio, fn, sUrl, song){
 }
 const failedAudioSongs = new Set();
 const scheduledAudioFailureAdvances = new Set();
+function markPlaylistSongAudioFailed(song) {
+  if (!ap || !ap.list || !ap.template.listOl) return;
+  const index = ap.list.audios.indexOf(song);
+  const row = index >= 0 ? ap.template.listOl.children[index] : null;
+  if (!row) return;
+  row.classList.add('xplayer-audio-load-failed');
+  row.setAttribute('title', 'Audio failed to load');
+}
 function skipSongAfterAudioLoadFailure(song, error) {
   if (!ap || !ap.list || ap.list.audios.length < 2) return;
+  markPlaylistSongAudioFailed(song);
   if (scheduledAudioFailureAdvances.has(song)) return;
   failedAudioSongs.add(song);
   if (failedAudioSongs.size >= ap.list.audios.length) {
