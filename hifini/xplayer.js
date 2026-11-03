@@ -493,6 +493,13 @@ function saveSongFavorite(key, fav, updatedAt = Date.now()) {
     transaction.onabort = () => reject(transaction.error || new Error('Favorite transaction aborted'));
   });
 }
+function updateDocumentTitleForSong(song) {
+  if (!song) return;
+  const artist = song.artist || '';
+  const name = song.name || '';
+  const favoriteSymbol = song.fav ? '♥' : '♡';
+  document.title = `${artist} |${favoriteSymbol} ${name} `;
+}
 function updatePlaylistFavoriteButtons() {
   if (!ap || !ap.list || !ap.template.listOl) return;
   ap.list.audios.forEach((song, index) => {
@@ -610,6 +617,7 @@ async function syncCurrentPlaylistFavoritesToCloud(user, songs = ap && ap.list ?
     if (ap && ap.list) {
       const currentSong = ap.list.audios[ap.list.index];
       const favoriteButton = ap.template.pic.querySelector('.aplayer-fav-button');
+      updateDocumentTitleForSong(currentSong);
       if (currentSong && favoriteButton) {
         favoriteButton.classList.toggle('aplayer-fav-active', !!currentSong.fav);
         favoriteButton.setAttribute('aria-pressed', String(!!currentSong.fav));
@@ -873,6 +881,9 @@ window.addEventListener('load', async () => {
           favorite: !!fav
         });
         updatePlaylistFavoriteButtons();
+        if (ap.list.audios[ap.list.index] === audio) {
+          updateDocumentTitleForSong(audio);
+        }
         const favoriteKey = audio.favKey;
         if (favoriteChangesInProgress.has(favoriteKey)) {
           logFavoriteProgress(operationId, startedAt, 'duplicate-click-ignored');
@@ -935,8 +946,8 @@ window.addEventListener('load', async () => {
         console.log(`play event of song/${ap.list.index} : ${sName} | ${sArtist} | ${ap.list.audios[ap.list.index].url} `);  //  ${currentSong.url} is already cached URL!!!
 
         var navPanel=$('#xplayer');
+        updateDocumentTitleForSong(currentSong);
         if(navPanel.length){
-          document.title=sArtist + ' | ' + sName;
           var hiddenTime = navPanel[0].querySelector('time');
           var minutesDiff=1; //refresh images >=1 minute
           if(!hiddenTime){
