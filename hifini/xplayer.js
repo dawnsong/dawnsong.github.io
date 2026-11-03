@@ -316,7 +316,9 @@ async function fetchAudioAsBlob(url) {
     // 1. Fetch the data from the remote server
     const response = await fetch(url);    
     if (response.status !== 200) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const error = new Error(`HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      throw error;
     }    
     // 2. Read the body of the response as a Blob
     // The browser automatically handles the buffer/array conversion.
@@ -753,12 +755,45 @@ async function url4cachedSong(doFetchAudio, fn, sUrl, song){
     throw error;
   }
 }
+const failedAudioSongs = new Set();
+const scheduledAudioFailureAdvances = new Set();
+function skipSongAfterAudioLoadFailure(song, error) {
+  if (!ap || !ap.list || ap.list.audios.length < 2) return;
+  if (scheduledAudioFailureAdvances.has(song)) return;
+  failedAudioSongs.add(song);
+  if (failedAudioSongs.size >= ap.list.audios.length) {
+    console.error('Every song in the loaded playlist failed to load; automatic skip stopped.', error);
+    ap.notice('Unable to load any song in this playlist.');
+    return;
+  }
+  scheduledAudioFailureAdvances.add(song);
+  window.setTimeout(() => {
+    scheduledAudioFailureAdvances.delete(song);
+    if (!ap || ap.list.audios[ap.list.index] !== song) return;
+    const nextIndex = ap.nextIndex();
+    if (!Number.isInteger(nextIndex) || nextIndex === ap.list.index) return;
+    console.warn(`Audio failed to load for '${song.name}' by '${song.artist}'; skipping to the next song.`, {
+      message: error.message || String(error),
+      status: error.status,
+      nextIndex
+    });
+    ap.list.switch(nextIndex);
+    ap.play();
+  }, 0);
+}
 async function resolveAudio(song){
-  const sourceUrl = song.url;
-  const parsedUrl = new URL(sourceUrl, window.location.href);
-  const fileName = decodeURI(parsedUrl.pathname);
-  if (!fileName.match(/\/xmusic.*/i)) return sourceUrl;
-  return url4cachedSong(true, fileName, sourceUrl, song);
+  try {
+    const sourceUrl = song.url;
+    const parsedUrl = new URL(sourceUrl, window.location.href);
+    const fileName = decodeURI(parsedUrl.pathname);
+    const resolvedUrl = fileName.match(/\/xmusic.*/i)
+      ? await url4cachedSong(true, fileName, sourceUrl, song)
+      : sourceUrl;
+    return resolvedUrl;
+  } catch (error) {
+    skipSongAfterAudioLoadFailure(song, error);
+    throw error;
+  }
 }
 async function updateSong2local(song, doFetchAudio){
   let sUrl=song.url;
@@ -871,6 +906,17 @@ window.addEventListener('load', async () => {
         resolveAudio,
         audio: songs
       });
+      ap.audio.addEventListener('error', () => {
+        const song = ap.list.audios[ap.list.index];
+        const mediaError = ap.audio.error;
+        const error = new Error(
+          mediaError
+            ? `Media load failed with code ${mediaError.code}: ${mediaError.message || 'unknown error'}`
+            : 'Media load failed.'
+        );
+        error.status = mediaError && mediaError.code;
+        skipSongAfterAudioLoadFailure(song, error);
+      });
       addPlaylistFavoriteButtons();
       if (restoredSongIndex >= 0) ap.list.switch(restoredSongIndex);
       ap.on('favoritechange', async ({ audio, fav }) => {
@@ -940,6 +986,7 @@ window.addEventListener('load', async () => {
       //change pixabay images once a song switched
       ap.audio.addEventListener('play', async function(){ 
         let currentSong=ap.list.audios[ap.list.index];
+        failedAudioSongs.clear();
 
         var sName  =currentSong.name;
         var sArtist=currentSong.artist;
