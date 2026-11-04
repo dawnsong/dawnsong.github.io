@@ -495,12 +495,25 @@ function saveSongFavorite(key, fav, updatedAt = Date.now()) {
     transaction.onabort = () => reject(transaction.error || new Error('Favorite transaction aborted'));
   });
 }
+let currentDocumentTitleSong = null;
+let currentDocumentTitleLyric = '';
 function updateDocumentTitleForSong(song) {
   if (!song) return;
+  if (currentDocumentTitleSong !== song) {
+    currentDocumentTitleSong = song;
+    currentDocumentTitleLyric = '';
+  }
   const artist = song.artist || '';
   const name = song.name || '';
   const favoriteSymbol = song.fav ? '♥' : '♡';
-  document.title = `${artist} |${favoriteSymbol} ${name} `;
+  document.title = currentDocumentTitleLyric || `${artist} ${favoriteSymbol} ${name}`;
+}
+function updateDocumentTitleForCurrentLyric() {
+  const currentLine = ap?.template?.lrc?.querySelector('.aplayer-lrc-current');
+  const lyric = currentLine?.textContent?.trim();
+  if (!lyric || lyric === '......' || lyric === 'Loading' || lyric === currentDocumentTitleLyric) return;
+  currentDocumentTitleLyric = lyric;
+  updateDocumentTitleForSong(ap.list.audios[ap.list.index]);
 }
 function updatePlaylistFavoriteButtons() {
   if (!ap || !ap.list || !ap.template.listOl) return;
@@ -992,6 +1005,7 @@ window.addEventListener('load', async () => {
           logFavoriteProgress(operationId, startedAt, 'finished');
         }
       });
+      ap.on('timeupdate', updateDocumentTitleForCurrentLyric);
       //change pixabay images once a song switched
       ap.audio.addEventListener('play', async function(){ 
         let currentSong=ap.list.audios[ap.list.index];
