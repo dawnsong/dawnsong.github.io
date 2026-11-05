@@ -1,16 +1,22 @@
 #!/bin/bash 
 #
 doRm=${1:-''}
+
+LOG_FILE="${0##*/}"
+LOG_FILE="${LOG_FILE%.*}.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+filterCmd="file songs/* |grep -vi -e 'Audio' -e 'Media' -e 'mpeg' -e 'lrc' -e 'png' -e 'jp.?g'"
 if [ x"$doRm" == x ]; then
     #file songs/* |grep -vi -e 'Audio' -e 'Media' -e 'mpeg' |gawk -v FS=:   '{print  $1  ; print $2 |"cat 1>&2"}'
     #file songs/* |grep -vi -e 'Audio' -e 'Media' -e 'mpeg' |gawk -v FS=:   '{print "'\''"  $1  "'\''" ; print $2 |"cat 1>&2"}'
-    file songs/* |grep -vi -e 'Audio' -e 'Media' -e 'mpeg' -e 'lrc' -e 'png' -e 'jp.?g' |gawk -v FS=:   '{print "'\''"  $1  "'\''" ; print $2 > "/dev/stderr"}'
+    $filterCmd |gawk -v FS=:   '{print "'\''"  $1  "'\''" ; print $2 > "/dev/stderr"}'
 elif [ x"$doRm" == x"-rm" ]; then
     #./findNonSongs.sh -rm 
     shift
-    file songs/* |grep -vi -e 'Audio' -e 'Media' -e 'mpeg' -e 'lrc' |
+    $filterCmd |
 gawk -v FS=: '{
-    print $1; 
+    print "rm " $1 ; 
     system("rm '\''"$1"'\''"); 
     print $2 |"cat 1>&2"
 }'
