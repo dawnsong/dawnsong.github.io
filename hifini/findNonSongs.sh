@@ -4,7 +4,7 @@ doRm=${1:-''}
 if [ x"$doRm" == x ]; then
     #file songs/* |grep -vi -e 'Audio' -e 'Media' -e 'mpeg' |gawk -v FS=:   '{print  $1  ; print $2 |"cat 1>&2"}'
     #file songs/* |grep -vi -e 'Audio' -e 'Media' -e 'mpeg' |gawk -v FS=:   '{print "'\''"  $1  "'\''" ; print $2 |"cat 1>&2"}'
-    file songs/* |grep -vi -e 'Audio' -e 'Media' -e 'mpeg' -e 'lrc' |gawk -v FS=:   '{print "'\''"  $1  "'\''" ; print $2 > "/dev/stderr"}'
+    file songs/* |grep -vi -e 'Audio' -e 'Media' -e 'mpeg' -e 'lrc' -e 'png' -e 'jp.?g' |gawk -v FS=:   '{print "'\''"  $1  "'\''" ; print $2 > "/dev/stderr"}'
 elif [ x"$doRm" == x"-rm" ]; then
     #./findNonSongs.sh -rm 
     shift
