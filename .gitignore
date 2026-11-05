@@ -29,5 +29,9 @@ xgcloud.json
 !hifini/
 hifini/*
 !hifini/firebase-favorites-worker.js
+!hifini/xplayer.css
+!hifini/xplayer.min.js
+!hifini/sigma-smile-436711-b7__xmusic_pub__cors.json
+!hifini/sigma-smile-436711-b7__xpub_js__cors.json
 .ssl/*.key
 bin/download_firebase_favorites.py

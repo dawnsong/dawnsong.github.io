@@ -164,7 +164,7 @@ function url4jsonArray(jsonArray){
   return URL.createObjectURL(blob);
 }
 //------------------------------------------------------------------------------
-let ap=null;
+let xplayer=null;
 const favoriteChangesInProgress = new Set();
 let favoriteOperationSequence = 0;
 let explicitFavoriteSyncPromise = null;
@@ -509,27 +509,27 @@ function updateDocumentTitleForSong(song) {
   document.title = currentDocumentTitleLyric || `${artist} ${favoriteSymbol} ${name}`;
 }
 function updateDocumentTitleForCurrentLyric() {
-  const currentLine = ap?.template?.lrc?.querySelector('.aplayer-lrc-current');
+  const currentLine = xplayer?.template?.lrc?.querySelector('.xplayer-lrc-current');
   const lyric = currentLine?.textContent?.trim();
   if (!lyric || lyric === '......' || lyric === 'Loading' || lyric === currentDocumentTitleLyric) return;
   currentDocumentTitleLyric = lyric;
-  updateDocumentTitleForSong(ap.list.audios[ap.list.index]);
+  updateDocumentTitleForSong(xplayer.list.audios[xplayer.list.index]);
 }
 function updatePlaylistFavoriteButtons() {
-  if (!ap || !ap.list || !ap.template.listOl) return;
-  ap.list.audios.forEach((song, index) => {
-    const row = ap.template.listOl.children[index];
+  if (!xplayer || !xplayer.list || !xplayer.template.listOl) return;
+  xplayer.list.audios.forEach((song, index) => {
+    const row = xplayer.template.listOl.children[index];
     const icon = row && row.querySelector('.xplayer-list-fav-button');
     if (!icon) return;
-    icon.classList.toggle('aplayer-fav-active', !!song.fav);
+    icon.classList.toggle('xplayer-fav-active', !!song.fav);
     icon.setAttribute('aria-label', song.fav ? 'Favorite' : 'Not favorite');
   });
 }
 function addPlaylistFavoriteButtons() {
-  const listOl = ap.template.listOl;
-  ap.list.audios.forEach((song, index) => {
+  const listOl = xplayer.template.listOl;
+  xplayer.list.audios.forEach((song, index) => {
     const row = listOl.children[index];
-    const title = row && row.querySelector('.aplayer-list-title');
+    const title = row && row.querySelector('.xplayer-list-title');
     if (!title || title.querySelector('.xplayer-list-fav-button')) return;
     const icon = document.createElement('span');
     icon.className = 'xplayer-list-fav-button';
@@ -539,6 +539,18 @@ function addPlaylistFavoriteButtons() {
     title.prepend(icon);
   });
   updatePlaylistFavoriteButtons();
+}
+function groupPlayerControls() {
+  const controller = xplayer.template.info.querySelector('.xplayer-controller');
+  const cover = xplayer.template.pic;
+  const backButton = controller.querySelector('.xplayer-icon-back');
+  const playButton = controller.querySelector('.xplayer-icon-play');
+  const forwardButton = controller.querySelector('.xplayer-icon-forward');
+  const controls = document.createElement('div');
+  controls.className = 'xplayer-control-buttons';
+  controls.addEventListener('click', event => event.stopPropagation());
+  controls.append(backButton, playButton, forwardButton);
+  cover.append(controls);
 }
 async function saveSongFavorites(favorites) {
   const writePageSize = 250;
@@ -570,7 +582,7 @@ async function hydrateSongFavorites(songs) {
     if (favorite) song.fav = favorite.fav;
   }));
 }
-async function syncCurrentPlaylistFavoritesToCloud(user, songs = ap && ap.list ? ap.list.audios : [], priorityKey = '') {
+async function syncCurrentPlaylistFavoritesToCloud(user, songs = xplayer && xplayer.list ? xplayer.list.audios : [], priorityKey = '') {
   const operationId = ++favoriteOperationSequence;
   const startedAt = performance.now();
   const cloud = window.xPlayerFavoriteCloud;
@@ -629,12 +641,12 @@ async function syncCurrentPlaylistFavoritesToCloud(user, songs = ap && ap.list ?
       if (favoritesByKey.has(song.favKey)) song.fav = favoritesByKey.get(song.favKey);
     });
     updatePlaylistFavoriteButtons();
-    if (ap && ap.list) {
-      const currentSong = ap.list.audios[ap.list.index];
-      const favoriteButton = ap.template.pic.querySelector('.aplayer-fav-button');
+    if (xplayer && xplayer.list) {
+      const currentSong = xplayer.list.audios[xplayer.list.index];
+      const favoriteButton = xplayer.template.pic.querySelector('.xplayer-fav-button');
       updateDocumentTitleForSong(currentSong);
       if (currentSong && favoriteButton) {
-        favoriteButton.classList.toggle('aplayer-fav-active', !!currentSong.fav);
+        favoriteButton.classList.toggle('xplayer-fav-active', !!currentSong.fav);
         favoriteButton.setAttribute('aria-pressed', String(!!currentSong.fav));
         favoriteButton.setAttribute('aria-label', currentSong.fav ? 'Remove from favorites' : 'Add to favorites');
       }
@@ -678,7 +690,7 @@ async function syncLoadedPlaylistFavoritesInBackground() {
       return;
     }
     logFavoriteProgress(operationId, startedAt, 'background-sync-started', {
-      songCount: Math.min(ap?.list?.audios?.length || 0, 10)
+      songCount: Math.min(xplayer?.list?.audios?.length || 0, 10)
     });
     const result = await syncCurrentPlaylistFavoritesOnce(user);
     logFavoriteProgress(operationId, startedAt, 'background-sync-completed', {
@@ -771,36 +783,36 @@ async function url4cachedSong(doFetchAudio, fn, sUrl, song){
 const failedAudioSongs = new Set();
 const scheduledAudioFailureAdvances = new Set();
 function markPlaylistSongAudioFailed(song) {
-  if (!ap || !ap.list || !ap.template.listOl) return;
-  const index = ap.list.audios.indexOf(song);
-  const row = index >= 0 ? ap.template.listOl.children[index] : null;
+  if (!xplayer || !xplayer.list || !xplayer.template.listOl) return;
+  const index = xplayer.list.audios.indexOf(song);
+  const row = index >= 0 ? xplayer.template.listOl.children[index] : null;
   if (!row) return;
   row.classList.add('xplayer-audio-load-failed');
   row.setAttribute('title', 'Audio failed to load');
 }
 function skipSongAfterAudioLoadFailure(song, error) {
-  if (!ap || !ap.list || ap.list.audios.length < 2) return;
+  if (!xplayer || !xplayer.list || xplayer.list.audios.length < 2) return;
   markPlaylistSongAudioFailed(song);
   if (scheduledAudioFailureAdvances.has(song)) return;
   failedAudioSongs.add(song);
-  if (failedAudioSongs.size >= ap.list.audios.length) {
+  if (failedAudioSongs.size >= xplayer.list.audios.length) {
     console.error('Every song in the loaded playlist failed to load; automatic skip stopped.', error);
-    ap.notice('Unable to load any song in this playlist.');
+    xplayer.notice('Unable to load any song in this playlist.');
     return;
   }
   scheduledAudioFailureAdvances.add(song);
   window.setTimeout(() => {
     scheduledAudioFailureAdvances.delete(song);
-    if (!ap || ap.list.audios[ap.list.index] !== song) return;
-    const nextIndex = ap.nextIndex();
-    if (!Number.isInteger(nextIndex) || nextIndex === ap.list.index) return;
+    if (!xplayer || xplayer.list.audios[xplayer.list.index] !== song) return;
+    const nextIndex = xplayer.nextIndex();
+    if (!Number.isInteger(nextIndex) || nextIndex === xplayer.list.index) return;
     console.warn(`Audio failed to load for '${song.name}' by '${song.artist}'; skipping to the next song.`, {
       message: error.message || String(error),
       status: error.status,
       nextIndex
     });
-    ap.list.switch(nextIndex);
-    ap.play();
+    xplayer.list.switch(nextIndex);
+    xplayer.play();
   }, 0);
 }
 async function resolveAudio(song){
@@ -909,7 +921,7 @@ window.addEventListener('load', async () => {
       await hydrateSongFavorites(songs);
       console.log('Cached songs: ', songs);
       //----------------------------------
-      ap = new XPlayer({
+      xplayer = new XPlayer({
         id4audio: 'xAudio',
         element: document.getElementById('xplayer'),
         narrow: false,
@@ -928,9 +940,10 @@ window.addEventListener('load', async () => {
         resolveAudio,
         audio: songs
       });
-      ap.audio.addEventListener('error', () => {
-        const song = ap.list.audios[ap.list.index];
-        const mediaError = ap.audio.error;
+      groupPlayerControls();
+      xplayer.audio.addEventListener('error', () => {
+        const song = xplayer.list.audios[xplayer.list.index];
+        const mediaError = xplayer.audio.error;
         const error = new Error(
           mediaError
             ? `Media load failed with code ${mediaError.code}: ${mediaError.message || 'unknown error'}`
@@ -940,8 +953,8 @@ window.addEventListener('load', async () => {
         skipSongAfterAudioLoadFailure(song, error);
       });
       addPlaylistFavoriteButtons();
-      if (restoredSongIndex >= 0) ap.list.switch(restoredSongIndex);
-      ap.on('favoritechange', async ({ audio, fav }) => {
+      if (restoredSongIndex >= 0) xplayer.list.switch(restoredSongIndex);
+      xplayer.on('favoritechange', async ({ audio, fav }) => {
         const operationId = ++favoriteOperationSequence;
         const startedAt = performance.now();
         logFavoriteProgress(operationId, startedAt, 'clicked', {
@@ -949,7 +962,7 @@ window.addEventListener('load', async () => {
           favorite: !!fav
         });
         updatePlaylistFavoriteButtons();
-        if (ap.list.audios[ap.list.index] === audio) {
+        if (xplayer.list.audios[xplayer.list.index] === audio) {
           updateDocumentTitleForSong(audio);
         }
         const favoriteKey = audio.favKey;
@@ -958,8 +971,8 @@ window.addEventListener('load', async () => {
           return;
         }
         favoriteChangesInProgress.add(favoriteKey);
-        const coverFavoriteButton = ap.template.pic.querySelector('.aplayer-fav-button');
-        if (coverFavoriteButton && ap.list.audios[ap.list.index] === audio) {
+        const coverFavoriteButton = xplayer.template.pic.querySelector('.xplayer-fav-button');
+        if (coverFavoriteButton && xplayer.list.audios[xplayer.list.index] === audio) {
           coverFavoriteButton.disabled = true;
         }
         try {
@@ -999,21 +1012,21 @@ window.addEventListener('load', async () => {
           console.error(`Failed to save favorite or start sign-in for '${audio.name}':`, error);
         } finally {
           favoriteChangesInProgress.delete(favoriteKey);
-          if (coverFavoriteButton && ap.list.audios[ap.list.index] === audio) {
+          if (coverFavoriteButton && xplayer.list.audios[xplayer.list.index] === audio) {
             coverFavoriteButton.disabled = false;
           }
           logFavoriteProgress(operationId, startedAt, 'finished');
         }
       });
-      ap.on('timeupdate', updateDocumentTitleForCurrentLyric);
+      xplayer.on('timeupdate', updateDocumentTitleForCurrentLyric);
       //change pixabay images once a song switched
-      ap.audio.addEventListener('play', async function(){ 
-        let currentSong=ap.list.audios[ap.list.index];
+      xplayer.audio.addEventListener('play', async function(){
+        let currentSong=xplayer.list.audios[xplayer.list.index];
         failedAudioSongs.clear();
 
         var sName  =currentSong.name;
         var sArtist=currentSong.artist;
-        console.log(`play event of song/${ap.list.index} : ${sName} | ${sArtist} | ${ap.list.audios[ap.list.index].url} `);  //  ${currentSong.url} is already cached URL!!!
+        console.log(`play event of song/${xplayer.list.index} : ${sName} | ${sArtist} | ${xplayer.list.audios[xplayer.list.index].url} `);  //  ${currentSong.url} is already cached URL!!!
 
         var navPanel=$('#xplayer');
         updateDocumentTitleForSong(currentSong);
@@ -1040,25 +1053,25 @@ window.addEventListener('load', async () => {
           await log4quota();
         }  
       });
-      ap.on('loadeddata', async function () {//just a song's data loaded, not its audio loaded yet
-        console.log('loadeddata of song: ' + ap.list.index );
-        console.log('URL: ' + ap.list.audios[ap.list.index].url);
-        console.log(ap.list.audios[ap.list.index]);
-        //console.log(null==ap.audios); //true
-        console.log("src: "+ ap.audio.src)
-        console.log(ap.audio.buffered)
+      xplayer.on('loadeddata', async function () {//just a song's data loaded, not its audio loaded yet
+        console.log('loadeddata of song: ' + xplayer.list.index );
+        console.log('URL: ' + xplayer.list.audios[xplayer.list.index].url);
+        console.log(xplayer.list.audios[xplayer.list.index]);
+        //console.log(null==xplayer.audios); //true
+        console.log("src: "+ xplayer.audio.src)
+        console.log(xplayer.audio.buffered)
       });
       window.setTimeout(() => {
         void syncLoadedPlaylistFavoritesInBackground();
       }, 0);
       //save decoded hifini URLs (i.e., qq music url) to local cookies
-      // ap.on('play', function () {
-      //   console.log('Start playing song: ' + ap.list.index );        
-      //   console.log('URL: ' + ap.list.audios[ap.list.index].url);
-      //   console.log(ap.list.audios[ap.list.index]);
-      //   //console.log(null==ap.audios); //true
-      //   console.log("src: "+ ap.audio.src)
-      //   console.log(ap.audio)  
+      // xplayer.on('play', function () {
+      //   console.log('Start playing song: ' + xplayer.list.index );
+      //   console.log('URL: ' + xplayer.list.audios[xplayer.list.index].url);
+      //   console.log(xplayer.list.audios[xplayer.list.index]);
+      //   //console.log(null==xplayer.audios); //true
+      //   console.log("src: "+ xplayer.audio.src)
+      //   console.log(xplayer.audio)
       // });
     }  
   });
