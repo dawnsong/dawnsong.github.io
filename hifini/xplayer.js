@@ -953,6 +953,12 @@ window.addEventListener('load', async () => {
         skipSongAfterAudioLoadFailure(song, error);
       });
       addPlaylistFavoriteButtons();
+      xplayer.on('listshow', () => {
+        xplayer.container.classList.add('xplayer-list-expanded');
+      });
+      xplayer.on('listhide', () => {
+        xplayer.container.classList.remove('xplayer-list-expanded');
+      });
       if (restoredSongIndex >= 0) xplayer.list.switch(restoredSongIndex);
       xplayer.on('favoritechange', async ({ audio, fav }) => {
         const operationId = ++favoriteOperationSequence;
