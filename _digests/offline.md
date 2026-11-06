@@ -29,6 +29,17 @@ date: 2025-12-14
 <script src="https://cdn.datatables.net/select/3.1.3/js/select.dataTables.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
 
+<style>
+  .offline-favorite {
+    color: #777;
+    font-size: 1.2em;
+  }
+
+  .offline-favorite.is-favorite {
+    color: #ff3b65;
+  }
+</style>
+
 <div id="divTbl4idb">
 <table id="tbl4idb" class="stripe row-border order-column" cellspacing="0" width="100%">
     <thead>
@@ -38,6 +49,7 @@ date: 2025-12-14
           <th>mimeType</th>
           <th>size</th>
           <th>timestamp</th>
+          <th>fav</th>
         </tr>
     </thead>    
 </table>
@@ -108,13 +120,39 @@ async function idb2dataArray(idb, storeName){
 
 function updateCoverImg(rIdx){
   let srcSet=document.querySelector(".responsive-img-srcset") || document.querySelector('img[title="yiGongZi_suShi"]');//only need to change the responsive source set!        
-  let currentSong=ap.list.audios[rIdx];
+  if(typeof xplayer === 'undefined' || !xplayer) return;
+  let currentSong=xplayer.list.audios[rIdx];
   console.log(`updateCoverImg: ${JSON.stringify(currentSong)} / rIdx=${rIdx}`)
   if(srcSet && currentSong){
     srcSet.srcset=currentSong.cover;
     let divCaption=document.querySelector("div.caption");
     divCaption.innerHTML   =`<p style='text-align: center;'>${currentSong.name}<br>${currentSong.artist}</p>`;
   }
+}
+
+async function addFavoriteStatus(records) {
+  return new Promise((resolve, reject) => {
+    const transaction = idb4songs.transaction([favoritesStoreName], "readonly");
+    const request = transaction.objectStore(favoritesStoreName).openCursor();
+    const favoriteByFileName = new Map();
+
+    request.onsuccess = (event) => {
+      const cursor = event.target.result;
+      if (cursor) {
+        favoriteByFileName.set(cursor.value.fileName, !!cursor.value.fav);
+        cursor.continue();
+        return;
+      }
+
+      records.forEach(record => {
+        record.fav = favoriteByFileName.get(record.fileName) || false;
+      });
+      resolve(records);
+    };
+    request.onerror = () => reject(request.error);
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error || new Error('Favorite lookup transaction aborted.'));
+  });
 }
 
 const currentUrl = new URL(window.location.href);
@@ -132,21 +170,22 @@ if(cpPlaylist=='random'){//no param has been passed yet to set the xPlayer
 }else{
     console.log(params)
     setTimeout(async () => {
-        console.log(`ap: ${ap}`) ;
-        ap.audio.addEventListener('play', async function(){             
-            updateCoverImg(ap.list.index);
-        });
+        if (typeof xplayer !== 'undefined' && xplayer) {
+          xplayer.audio.addEventListener('play', async function(){
+              updateCoverImg(xplayer.list.index);
+          });
+        }
         //list cached songs to the table
         if(typeof idb4songs !== 'undefined' && idb4songs!==null){
           if(typeof storeName === 'undefined')throw(`storeName cannot be found!!!`);
-          let data4tbl=await idb2dataArray(idb4songs, storeName);
+          let data4tbl=await addFavoriteStatus(await idb2dataArray(idb4songs, storeName));
           // console.log(data4tbl);  
           renderData2table(data4tbl);
         }
         //randomly init the cover image since the default expiring days is 7 in google storage
         rIdx=Math.floor(Math.random() * 39);
         updateCoverImg(rIdx);
-    }, 3000); //allow 3 seconds delay/timeout to check if ap is loaded    
+    }, 3000); //allow time for XPlayer and IndexedDB to initialize
 }
 
 let dt=null, dt4desc=null;
@@ -173,7 +212,6 @@ function rmKey(key) {
 }
 function renderData2table(arr4tb){ 
   if(dt!==null) {dt.destroy();}//restore to simple html table, still kept in DOM
-  if(typeof ap == 'undefined')return;
   // Initialise the DataTable
   dt=new DataTable('#tbl4idb', {
     columnDefs: [
@@ -194,6 +232,15 @@ function renderData2table(arr4tb){
             return moment(data).format('YYYYMMDD HH:mm');
         }
         return data; // For sorting and other types, return original data
+      }},
+      { data: 'fav', render: function (data, type) {
+        if (type === 'display') {
+          const label = data ? 'Favorite' : 'Not favorite';
+          const heart = data ? '♥' : '♡';
+          return `<span class="offline-favorite${data ? ' is-favorite' : ''}" aria-label="${label}" title="${label}">${heart}</span>`;
+        }
+        if (type === 'filter') return data ? 'Favorite' : 'Not favorite';
+        return data ? 1 : 0;
       }}],
     data: arr4tb,
     // layout: {
@@ -225,7 +272,7 @@ function renderData2table(arr4tb){
           // }
       });
     //reload the data
-    let data4tbl=await idb2dataArray(idb4songs, storeName);          
+    let data4tbl=await addFavoriteStatus(await idb2dataArray(idb4songs, storeName));
     renderData2table(data4tbl);
   });  
 
@@ -234,15 +281,19 @@ function renderData2table(arr4tb){
   btnPlaySelected.classList.add("dt-button");  
   dtSearchParentDiv.insertBefore(btnPlaySelected, dtSearchParentDiv.firstChild);
   btnPlaySelected.addEventListener('click', async () => { 
-    ap.list.clear();
+    if (typeof xplayer === 'undefined' || !xplayer) {
+      console.error('Cannot play selected offline songs because XPlayer is not initialized.');
+      return;
+    }
+    xplayer.list.clear();
     var selectedRowsData = dt.rows({ selected: true }).data();    
     selectedRowsData.each(async function(rowData) {
       aBlob=await loadAudioBlob(rowData['fileName']); 
       if(aBlob != null )
       if('meta' in rowData)
-        ap.list.add([{"name":rowData['name'], "artist":rowData['artist'], "url":URL.createObjectURL(aBlob.data), "cover":rowData['meta']["cover"]}]);
+        xplayer.list.add([{"name":rowData['name'], "artist":rowData['artist'], "url":URL.createObjectURL(aBlob.data), "cover":rowData['meta']["cover"]}]);
       else
-        ap.list.add([{"name":rowData['name'], "artist":rowData['artist'], "url":URL.createObjectURL(aBlob.data)}]);
+        xplayer.list.add([{"name":rowData['name'], "artist":rowData['artist'], "url":URL.createObjectURL(aBlob.data)}]);
     });    
   });
 }
