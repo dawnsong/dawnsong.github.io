@@ -598,6 +598,13 @@
   margin: 0 0 3px;
 }
 
+.xplayer.xplayer-list-expanded .xplayer-lrc-contents {
+  position: relative;
+  top: 19px;
+}
+
+
+
 .xplayer.xplayer-list-expanded .xplayer-info .xplayer-controller {
   margin-bottom: 0;
 }
