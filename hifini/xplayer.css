@@ -720,11 +720,12 @@
 }
 
 .xplayer .xplayer-list ol li:hover {
-  background: #0f0f0f;
+  background: var(--xplayer-list-hover, rgba(23, 33, 43, 0.06));
 }
 
 .xplayer .xplayer-list ol li.xplayer-list-light {
-  background: #010101;
+  background: var(--xplayer-list-active, rgba(173, 122, 134, 0.16));
+  color: var(--xplayer-text);
 }
 
 .xplayer .xplayer-list ol li.xplayer-list-light .xplayer-list-cur {
@@ -897,6 +898,8 @@
   --xplayer-text: #17212b;
   --xplayer-lyric: #17212b;
   --xplayer-lyric-secondary: #374151;
+  --xplayer-list-hover: rgba(23, 33, 43, 0.06);
+  --xplayer-list-active: rgba(173, 122, 134, 0.16);
   color-scheme: light;
   color: var(--xplayer-text);
   background: var(--xplayer-surface);
@@ -947,6 +950,8 @@ html[data-theme="dark"] .xplayer {
   --xplayer-text: #f3f4f6;
   --xplayer-lyric: #ffffff;
   --xplayer-lyric-secondary: #d1d5db;
+  --xplayer-list-hover: rgba(255, 255, 255, 0.07);
+  --xplayer-list-active: rgba(173, 122, 134, 0.3);
   color-scheme: dark;
 }
 
@@ -956,6 +961,8 @@ html[data-theme="dark"] .xplayer {
     --xplayer-text: #f3f4f6;
     --xplayer-lyric: #ffffff;
     --xplayer-lyric-secondary: #d1d5db;
+    --xplayer-list-hover: rgba(255, 255, 255, 0.07);
+    --xplayer-list-active: rgba(173, 122, 134, 0.3);
     color-scheme: dark;
   }
 }
