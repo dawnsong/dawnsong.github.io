@@ -790,6 +790,15 @@ function markPlaylistSongAudioFailed(song) {
   row.classList.add('xplayer-audio-load-failed');
   row.setAttribute('title', 'Audio failed to load');
 }
+function clearPlaylistSongAudioFailed(song) {
+  if (!xplayer || !xplayer.list || !xplayer.template.listOl) return;
+  const index = xplayer.list.audios.indexOf(song);
+  const row = index >= 0 ? xplayer.template.listOl.children[index] : null;
+  if (!row) return;
+  row.classList.remove('xplayer-audio-load-failed');
+  row.removeAttribute('title');
+  failedAudioSongs.delete(song);
+}
 function skipSongAfterAudioLoadFailure(song, error) {
   if (!xplayer || !xplayer.list || xplayer.list.audios.length < 2) return;
   markPlaylistSongAudioFailed(song);
@@ -951,6 +960,9 @@ window.addEventListener('load', async () => {
         );
         error.status = mediaError && mediaError.code;
         skipSongAfterAudioLoadFailure(song, error);
+      });
+      xplayer.audio.addEventListener('playing', () => {
+        clearPlaylistSongAudioFailed(xplayer.list.audios[xplayer.list.index]);
       });
       addPlaylistFavoriteButtons();
       xplayer.on('listshow', () => {
