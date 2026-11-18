@@ -87,7 +87,13 @@ async function requestJson(url, idToken, body) {
   }
 }
 
-async function syncFavorites({ projectId, userId, idToken, profile, localRecords }) {
+async function syncFavorites({
+  projectId,
+  userId,
+  idToken,
+  profile,
+  localRecords,
+}) {
   const startedAt = performance.now();
   if (
     !profile ||
