@@ -87,8 +87,17 @@ async function requestJson(url, idToken, body) {
   }
 }
 
-async function syncFavorites({ projectId, userId, idToken, localRecords }) {
+async function syncFavorites({ projectId, userId, idToken, profile, localRecords }) {
   const startedAt = performance.now();
+  if (
+    !profile ||
+    profile.uid !== userId ||
+    typeof profile.displayName !== "string" ||
+    typeof profile.email !== "string" ||
+    !Number.isFinite(Number(profile.updatedAt))
+  ) {
+    throw new Error("Invalid Firebase user profile in sync request.");
+  }
   if (!Array.isArray(localRecords) || localRecords.length > 10) {
     throw new Error("A favorites sync must contain no more than 10 songs.");
   }
@@ -102,13 +111,11 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
   );
   if (records.length !== localRecords.length)
     throw new Error("Invalid favorite record in sync request.");
-  if (!records.length)
-    return { downloadedCount: 0, uploadedCount: 0, remoteUpdates: [] };
-
   console.warn("[favorite-worker] sync-started", { songCount: records.length });
   const database = `projects/${encodeURIComponent(
     projectId
   )}/databases/(default)/documents`;
+  const userDocument = `${database}/users/${encodeURIComponent(userId)}`;
   const collection = `${database}/users/${encodeURIComponent(
     userId
   )}/favorites`;
@@ -127,17 +134,20 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
     elapsedMs: Math.round(performance.now() - startedAt),
     count: documentIds.length,
   });
-  const responseText = await requestJson(
-    `https://firestore.googleapis.com/v1/${database}:batchGet`,
-    idToken,
-    { documents: documentIds.map((id) => `${collection}/${id}`) }
-  );
-  console.warn("[favorite-worker] remote-read-completed", {
-    elapsedMs: Math.round(performance.now() - startedAt),
-    responseBytes: new TextEncoder().encode(responseText).length,
-  });
+  let responseText = "";
+  if (documentIds.length) {
+    responseText = await requestJson(
+      `https://firestore.googleapis.com/v1/${database}:batchGet`,
+      idToken,
+      { documents: documentIds.map((id) => `${collection}/${id}`) }
+    );
+    console.warn("[favorite-worker] remote-read-completed", {
+      elapsedMs: Math.round(performance.now() - startedAt),
+      responseBytes: new TextEncoder().encode(responseText).length,
+    });
+  }
   const remoteByDocumentId = new Map();
-  parseJsonResponses(responseText).forEach((response) => {
+  (responseText ? parseJsonResponses(responseText) : []).forEach((response) => {
     if (!response.found) return;
     const documentId = response.found.name.split("/").pop();
     const fields = response.found.fields || {};
@@ -166,31 +176,52 @@ async function syncFavorites({ projectId, userId, idToken, localRecords }) {
     }
   });
 
-  if (writes.length) {
+  const profileWrite = {
+    update: {
+      name: userDocument,
+      fields: {
+        uid: { stringValue: profile.uid },
+        displayName: { stringValue: profile.displayName },
+        email: { stringValue: profile.email },
+        updatedAt: {
+          integerValue: String(Math.trunc(Number(profile.updatedAt))),
+        },
+      },
+    },
+    updateMask: {
+      fieldPaths: ["uid", "displayName", "email", "updatedAt"],
+    },
+  };
+  if (writes.length || profile) {
     console.warn("[favorite-worker] remote-write-started", {
-      count: writes.length,
+      favoriteCount: writes.length,
+      profile: true,
     });
     await requestJson(
       `https://firestore.googleapis.com/v1/${database}:commit`,
       idToken,
       {
-        writes: writes.map(({ local, documentId }) => ({
-          update: {
-            name: `${collection}/${documentId}`,
-            fields: {
-              key: { stringValue: local.key },
-              fav: { booleanValue: local.fav },
-              updatedAt: {
-                integerValue: String(Math.trunc(Number(local.updatedAt))),
+        writes: [
+          ...writes.map(({ local, documentId }) => ({
+            update: {
+              name: `${collection}/${documentId}`,
+              fields: {
+                key: { stringValue: local.key },
+                fav: { booleanValue: local.fav },
+                updatedAt: {
+                  integerValue: String(Math.trunc(Number(local.updatedAt))),
+                },
               },
             },
-          },
-        })),
+          })),
+          profileWrite,
+        ],
       }
     );
     console.warn("[favorite-worker] remote-write-completed", {
       elapsedMs: Math.round(performance.now() - startedAt),
-      count: writes.length,
+      favoriteCount: writes.length,
+      profile: true,
     });
   }
   console.warn("[favorite-worker] sync-completed", {

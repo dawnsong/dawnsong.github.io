@@ -131,6 +131,12 @@ function initializeFavoriteCloud() {
           type: 'sync',
           projectId: firebaseConfig.projectId,
           userId: signedInUser.uid,
+          profile: {
+            uid: signedInUser.uid,
+            displayName: signedInUser.displayName || '',
+            email: signedInUser.email || '',
+            updatedAt: Date.now()
+          },
           idToken,
           localRecords
         });

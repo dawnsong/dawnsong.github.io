@@ -657,9 +657,18 @@ async function syncCurrentPlaylistFavoritesToCloud(user, songs = xplayer && xpla
   }
   return syncResult;
 }
-function syncCurrentPlaylistFavoritesOnce(user) {
-  if (currentPlaylistFavoriteSyncPromise) return currentPlaylistFavoriteSyncPromise;
-  const syncPromise = syncCurrentPlaylistFavoritesToCloud(user);
+function syncCurrentPlaylistFavoritesOnce(user, priorityKey = '') {
+  if (currentPlaylistFavoriteSyncPromise) {
+    if (!priorityKey) return currentPlaylistFavoriteSyncPromise;
+    return currentPlaylistFavoriteSyncPromise.then(() =>
+      syncCurrentPlaylistFavoritesOnce(user, priorityKey)
+    );
+  }
+  const syncPromise = syncCurrentPlaylistFavoritesToCloud(
+    user,
+    undefined,
+    priorityKey
+  );
   currentPlaylistFavoriteSyncPromise = syncPromise.finally(() => {
     currentPlaylistFavoriteSyncPromise = null;
   });
@@ -1016,8 +1025,13 @@ window.addEventListener('load', async () => {
               logFavoriteProgress(operationId, startedAt, 'google-sign-in-redirect-started');
               await cloud.ensureSignedIn(returnUrl);
             } else {
-              logFavoriteProgress(operationId, startedAt, 'automatic-cloud-sync-skipped', {
-                reason: 'disabled-to-prevent-freeze'
+              logFavoriteProgress(operationId, startedAt, 'favorite-cloud-sync-started', {
+                songIndex: audio.playlistIndex
+              });
+              const syncResult = await syncCurrentPlaylistFavoritesOnce(user, audio.favKey);
+              logFavoriteProgress(operationId, startedAt, 'favorite-cloud-sync-completed', {
+                uploadedCount: syncResult.uploadedCount,
+                remoteUpdateCount: syncResult.remoteUpdates.length
               });
             }
           } else {
